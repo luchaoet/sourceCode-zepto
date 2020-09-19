@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .li-active {
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <ul>
+      <li class="first-li">list item 1</li>
+      <li class="li-active">list item 2</li>
+      <li style="font-weight: bold">list item 3</li>
+    </ul>
+    <ul>
+      <li class="first-li">list item 1</li>
+      <li class="li-active">list item 2</li>
+      <li style="font-weight: bold">list item 3</li>
+    </ul>
+    <p>123</p>
+
+    <form action="" method="get">
+      <input type="text" value="" />
+      <select name="" id="">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </form>
+    <form action="" method="get">
+      <input type="text" value="" />
+      <select name="" id="">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </form>
+    <input type="text" value="" />
+  </body>
+
+  <script src="./zepto.js"></script>
+  <script>
+    // const a = $("li").filter(".first-li")
+    // console.log(a);
+
+    // const b = $("li").filter((index, el) => {
+    //     // console.log(index, el)
+    //     // const li = $("li")[index];
+    //     return $(el).attr('class') === 'first-li'
+    // })
+    // console.log(b);
+
+    const a = $('form').find($('input'))
+    console.log(a)
+  </script>
+</html>
