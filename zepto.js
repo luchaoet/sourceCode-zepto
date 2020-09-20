@@ -340,15 +340,18 @@ var Zepto = (function () {
   // This method can be overriden in plugins.
   zepto.qsa = function (element, selector) {
     var found,
+      // 是否为id选择器
       maybeID = selector[0] == '#',
+      // 是否为class选择器
       maybeClass = !maybeID && selector[0] == '.',
+      // id class选择器 截取出名称
       nameOnly = maybeID || maybeClass ? selector.slice(1) : selector, // Ensure that a 1 char tag name still gets checked
       isSimple = simpleSelectorRE.test(nameOnly)
     return isDocument(element) && isSimple && maybeID
       ? (found = element.getElementById(nameOnly))
         ? [found]
         : []
-      : element.nodeType !== 1 && element.nodeType !== 9
+      : element.nodeType !== 1 && element.nodeType !== 9 // 非element元素节点 非document文档节点
       ? []
       : slice.call(
           isSimple && !maybeID
@@ -513,6 +516,7 @@ var Zepto = (function () {
   $.fn = {
     // Because a collection acts like an array
     // copy over these useful array functions.
+    // 与 each 类似， each返回false时，遍历停止
     forEach: emptyArray.forEach,
     reduce: emptyArray.reduce,
     push: emptyArray.push,
@@ -547,15 +551,27 @@ var Zepto = (function () {
         )
       return this
     },
+
+    /**
+     * 返回指定集合中指定的DOM元素
+     * 不传参 返回DOM集合
+     * 参数可为负数
+     */
     get: function (idx) {
       return idx === undefined ? slice.call(this) : this[idx >= 0 ? idx : idx + this.length]
     },
+
+    // 将zepto集合转为DOM数组
     toArray: function () {
       return this.get()
     },
+
+    // 返回对象集合中的元素长度
     size: function () {
       return this.length
     },
+
+    // 删除元素
     remove: function () {
       return this.each(function () {
         if (this.parentNode != null) this.parentNode.removeChild(this)
@@ -569,6 +585,7 @@ var Zepto = (function () {
       })
       return this
     },
+
     filter: function (selector) {
       if (isFunction(selector)) return this.not(this.not(selector))
       return $(
@@ -603,6 +620,8 @@ var Zepto = (function () {
       }
       return $(nodes)
     },
+
+    //
     has: function (selector) {
       return this.filter(function () {
         return isObject(selector) ? $.contains(this, selector) : $(this).find(selector).size()
@@ -617,6 +636,7 @@ var Zepto = (function () {
       return idx === -1 ? this.slice(idx) : this.slice(idx, +idx + 1)
     },
 
+    // 集合中的第一个元素
     first: function () {
       var el = this[0]
       return el && !isObject(el) ? el : $(el)
@@ -627,10 +647,10 @@ var Zepto = (function () {
       return el && !isObject(el) ? el : $(el)
     },
 
+    // 在当对象前集合内查找符合CSS选择器的所有后代元素
     find: function (selector) {
       var result,
         $this = this
-
       // 返回 zepto 空集合
       if (!selector) {
         result = $()
@@ -639,11 +659,13 @@ var Zepto = (function () {
       else if (typeof selector == 'object') {
         result = $(selector).filter(function () {
           var node = this
+          // some 其中一个满足条件则返回 true
           return emptyArray.some.call($this, function (parent) {
             return $.contains(parent, node)
           })
         })
       } else if (this.length == 1) {
+        // $('form').find('input')
         result = $(zepto.qsa(this[0], selector))
       } else {
         result = this.map(function () {

@@ -31,14 +31,6 @@
         <option value="3">3</option>
       </select>
     </form>
-    <form action="" method="get">
-      <input type="text" value="" />
-      <select name="" id="">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-      </select>
-    </form>
     <input type="text" value="" />
   </body>
 
@@ -54,7 +46,7 @@
     // })
     // console.log(b);
 
-    const a = $('form').find($('input'))
+    const a = $('form').has('option')
     console.log(a)
   </script>
 </html>
