@@ -12,7 +12,7 @@
   </head>
   <body>
     <ul>
-      <li class="first-li">list item 1</li>
+      <li class="first-li a b f">list item 1</li>
       <li class="li-active">list item 2</li>
       <li style="font-weight: bold">list item 3</li>
     </ul>
@@ -36,17 +36,13 @@
 
   <script src="./zepto.js"></script>
   <script>
-    // const a = $("li").filter(".first-li")
-    // console.log(a);
+    const a = $('li').last()
+    console.log(a)
 
     // const b = $("li").filter((index, el) => {
     //     // console.log(index, el)
     //     // const li = $("li")[index];
     //     return $(el).attr('class') === 'first-li'
     // })
-    // console.log(b);
-
-    const a = $('form').has('option')
-    console.log(a)
   </script>
 </html>

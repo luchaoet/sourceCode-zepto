@@ -391,6 +391,7 @@ var Zepto = (function () {
   }
 
   // access className property while respecting SVGAnimatedString
+  // 设置或获取元素类名
   function className(node, value) {
     var klass = node.className || '',
       svg = klass && klass.baseVal !== undefined
@@ -599,9 +600,12 @@ var Zepto = (function () {
     add: function (selector, context) {
       return $(uniq(this.concat($(selector, context))))
     },
+
+    // 判断元素或当前集合中的第一个元素是否符合css选择器
     is: function (selector) {
       return this.length > 0 && zepto.matches(this[0], selector)
     },
+
     not: function (selector) {
       var nodes = []
       if (isFunction(selector) && selector.call !== undefined)
@@ -621,7 +625,7 @@ var Zepto = (function () {
       return $(nodes)
     },
 
-    //
+    // 返回集合的子元素中符合条件的元素
     has: function (selector) {
       return this.filter(function () {
         return isObject(selector) ? $.contains(this, selector) : $(this).find(selector).size()
@@ -630,18 +634,21 @@ var Zepto = (function () {
 
     /**
      * 获取索引值对应的元素
-     * -1 返回最后一个 slice 不改变原数组
+     * -1 返回最后一个 slice不改变原数组
+     * +idx + 1 ？？？
      */
     eq: function (idx) {
       return idx === -1 ? this.slice(idx) : this.slice(idx, +idx + 1)
     },
 
-    // 集合中的第一个元素
+    // 返回集合中的第一个元素
     first: function () {
       var el = this[0]
+      // 保证返回的是Zepto对象 便于链式操作
       return el && !isObject(el) ? el : $(el)
     },
 
+    // 返回集合中的最后一个元素 保证返回的是zepto对象
     last: function () {
       var el = this[this.length - 1]
       return el && !isObject(el) ? el : $(el)
@@ -802,8 +809,15 @@ var Zepto = (function () {
     next: function (selector) {
       return $(this.pluck('nextElementSibling')).filter(selector || '*')
     },
+
+    // 设置或获取 html
     html: function (html) {
-      return 0 in arguments
+      /**
+       * 存在 html 参数时
+       * 先清空innerHTML 在 append html
+       * html 参数为空时 获取集合中第一个元素中的 innerHTML
+       */
+      return 0 in arguments // 0 in arguments 以此判断是否存在第一个元素
         ? this.each(function (idx) {
             var originHtml = this.innerHTML
             $(this).empty().append(funcArg(this, html, idx, originHtml))
@@ -812,6 +826,7 @@ var Zepto = (function () {
         ? this[0].innerHTML
         : null
     },
+
     text: function (text) {
       return 0 in arguments
         ? this.each(function (idx) {
@@ -968,18 +983,26 @@ var Zepto = (function () {
       })
     },
 
+    /**
+     * 获取指定元素 element 在集合中的索引值
+     * 未指定element 则获取当前元素在父元素中的索引
+     */
     index: function (element) {
       return element ? this.indexOf($(element)[0]) : this.parent().children().indexOf(this[0])
     },
 
+    /**
+     * 集合中是否有对象含有指定的 class
+     */
     hasClass: function (name) {
       if (!name) return false
+      // some 存在一个满足条件即返回true, 否则返回false
       return emptyArray.some.call(
         this,
         function (el) {
           return this.test(className(el))
         },
-        classRE(name)
+        classRE(name) // 第二个参数对象作为该执行回调时使用，传递给函数，用作 "this" 的值, classRE 返回正则字符串
       )
     },
 
