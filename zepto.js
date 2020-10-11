@@ -608,7 +608,8 @@ var Zepto = (function () {
 
     not: function (selector) {
       var nodes = []
-      if (isFunction(selector) && selector.call !== undefined)
+      // 参数为函数
+      if (isFunction(selector) && selector.call !== undefined) {
         /**
          * 擅自传入 el 值
          * 便于 not 以及 filter 函数中快速获取到当前元素，而不仅仅拿到当前的索引
@@ -616,8 +617,14 @@ var Zepto = (function () {
         this.each(function (idx, el) {
           if (!selector.call(this, idx, el)) nodes.push(this)
         })
-      else {
-        var excludes = typeof selector == 'string' ? this.filter(selector) : likeArray(selector) && isFunction(selector.item) ? slice.call(selector) : $(selector)
+      } else {
+        var excludes =
+          typeof selector == 'string'
+            ? this.filter(selector) // 先用filter处理
+            : likeArray(selector) && isFunction(selector.item)
+            ? slice.call(selector) // 如果是类数组则转为数组
+            : $(selector)
+        // 数组元素取反
         this.forEach(function (el) {
           if (excludes.indexOf(el) < 0) nodes.push(el)
         })
@@ -734,6 +741,7 @@ var Zepto = (function () {
       })
     },
 
+    // 获取元素的属性
     // `pluck` is borrowed from Prototype.js
     pluck: function (property) {
       return $.map(this, function (el) {
@@ -803,9 +811,13 @@ var Zepto = (function () {
         ;(setting === undefined ? el.css('display') == 'none' : setting) ? el.show() : el.hide()
       })
     },
+
+    // 获取集合中每个元素的相邻的上一个兄弟节点
     prev: function (selector) {
       return $(this.pluck('previousElementSibling')).filter(selector || '*')
     },
+
+    // 获取集合中每个元素的相邻的下一个兄弟节点
     next: function (selector) {
       return $(this.pluck('nextElementSibling')).filter(selector || '*')
     },
@@ -892,7 +904,7 @@ var Zepto = (function () {
               : this[0].value)
     },
     offset: function (coordinates) {
-      if (coordinates)
+      if (coordinates) {
         return this.each(function (index) {
           var $this = $(this),
             coords = funcArg(this, coordinates, index, $this.offset()),
@@ -905,7 +917,10 @@ var Zepto = (function () {
           if ($this.css('position') == 'static') props['position'] = 'relative'
           $this.css(props)
         })
+      }
       if (!this.length) return null
+
+      // 没有参数则返回元素的四个属性
       var obj = this[0].getBoundingClientRect()
       return {
         left: obj.left + window.pageXOffset,
@@ -917,7 +932,6 @@ var Zepto = (function () {
 
     // 添加或读取css样式
     css: function (property, value) {
-      console.log(property, value, arguments)
       // 一个参数 获取单一属性值
       if (arguments.length < 2) {
         var computedStyle,
@@ -1083,6 +1097,7 @@ var Zepto = (function () {
         offsetParent = this.offsetParent(),
         // Get correct offsets
         offset = this.offset(),
+        // rootNodeRE -> html / body
         parentOffset = rootNodeRE.test(offsetParent[0].nodeName) ? { top: 0, left: 0 } : offsetParent.offset()
 
       // Subtract element margins
@@ -1101,9 +1116,13 @@ var Zepto = (function () {
         left: offset.left - parentOffset.left,
       }
     },
+
+    // 找到元素第一个有定位的祖先元素
     offsetParent: function () {
       return this.map(function () {
+        // dom元素自带offsetParent属性
         var parent = this.offsetParent || document.body
+        // rootNodeRE -> html / body
         while (parent && !rootNodeRE.test(parent.nodeName) && $(parent).css('position') == 'static') parent = parent.offsetParent
         return parent
       })

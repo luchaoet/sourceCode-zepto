@@ -31,13 +31,13 @@
         <option value="3">3</option>
       </select>
     </form>
-    <input type="text" value="" />
+    <input class="input" type="text" value="" />
   </body>
 
   <script src="./zepto.js"></script>
   <script>
-    const a = $('li').last()
-    console.log(a)
+    const a = $('.input').offset({ top: 200 })
+    console.log($('input'), a)
 
     // const b = $("li").filter((index, el) => {
     //     // console.log(index, el)
