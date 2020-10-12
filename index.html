@@ -24,20 +24,19 @@
     <p>123</p>
 
     <form action="" method="get">
-      <input type="text" value="" />
+      <input class="input" type="text" value="" />
       <select name="" id="">
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
       </select>
     </form>
-    <input class="input" type="text" value="" />
+    <input class="input input1 input2 input3" type="text" value="" />
   </body>
 
   <script src="./zepto.js"></script>
   <script>
-    const a = $('.input').offset({ top: 200 })
-    console.log($('input'), a)
+    $('.input3').removeClass('input2')
 
     // const b = $("li").filter((index, el) => {
     //     // console.log(index, el)

@@ -386,6 +386,7 @@ var Zepto = (function () {
     return isFunction(arg) ? arg.call(context, idx, payload) : arg
   }
 
+  // 设置或删除节点属性
   function setAttribute(node, name, value) {
     value == null ? node.removeAttribute(name) : node.setAttribute(name, value)
   }
@@ -519,7 +520,15 @@ var Zepto = (function () {
     // copy over these useful array functions.
     // 与 each 类似， each返回false时，遍历停止
     forEach: emptyArray.forEach,
+
+    /**
+     * 遍历集合
+     * reduce(function(memo, item, index, array){}
+     * memo 函数上一次的返回值
+     */
     reduce: emptyArray.reduce,
+
+    // zepto集合中添加元素
     push: emptyArray.push,
     sort: emptyArray.sort,
     indexOf: emptyArray.indexOf,
@@ -541,8 +550,13 @@ var Zepto = (function () {
     ready: function (callback) {
       // need to check if document.body exists for IE as that browser reports
       // document ready when it hasn't yet created the body element
-      if (readyRE.test(document.readyState) && document.body) callback($)
-      else
+      if (readyRE.test(document.readyState) && document.body) {
+        callback($)
+      } else {
+        /**
+         * 当初始的 HTML 文档被完全加载和解析完成之后，DOMContentLoaded 事件被触发
+         * 无需等待样式表、图像和子框架的完全加载
+         */
         document.addEventListener(
           'DOMContentLoaded',
           function () {
@@ -550,11 +564,12 @@ var Zepto = (function () {
           },
           false
         )
+      }
       return this
     },
 
     /**
-     * 返回指定集合中指定的DOM元素
+     * 返回集合中指定位置的元素
      * 不传参 返回DOM集合
      * 参数可为负数
      */
@@ -572,9 +587,10 @@ var Zepto = (function () {
       return this.length
     },
 
-    // 删除元素
+    // 从dom节点中删除当前集合中的元素
     remove: function () {
       return this.each(function () {
+        // document.parentNode 为 null
         if (this.parentNode != null) this.parentNode.removeChild(this)
       })
     },
@@ -695,21 +711,36 @@ var Zepto = (function () {
       while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector))) node = node !== context && !isDocument(node) && node.parentNode
       return $(node)
     },
+
+    // 获取元素的所有祖先元素
     parents: function (selector) {
       var ancestors = [],
         nodes = this
-      while (nodes.length > 0)
+      while (nodes.length > 0) {
+        // 获取元素的父元素
         nodes = $.map(nodes, function (node) {
-          if ((node = node.parentNode) && !isDocument(node) && ancestors.indexOf(node) < 0) {
+          if (
+            // node赋值为父元素
+            (node = node.parentNode) &&
+            // 不为根节点
+            !isDocument(node) &&
+            // 判重 防止与其他元素的父元素重复
+            ancestors.indexOf(node) < 0
+          ) {
             ancestors.push(node)
             return node
           }
         })
+      }
+      // 过滤
       return filtered(ancestors, selector)
     },
+
+    // 获取元素的直接父元素
     parent: function (selector) {
       return filtered(uniq(this.pluck('parentNode')), selector)
     },
+
     children: function (selector) {
       return filtered(
         this.map(function () {
@@ -741,7 +772,7 @@ var Zepto = (function () {
       })
     },
 
-    // 获取元素的属性
+    // 获取集合中每个元素的属性值
     // `pluck` is borrowed from Prototype.js
     pluck: function (property) {
       return $.map(this, function (el) {
@@ -863,21 +894,49 @@ var Zepto = (function () {
             else setAttribute(this, name, funcArg(this, value, idx, this.getAttribute(name)))
           })
     },
+
+    // 移除属性
     removeAttr: function (name) {
       return this.each(function () {
+        // 元素节点（element）：1，
         this.nodeType === 1 &&
           name.split(' ').forEach(function (attribute) {
+            // 删除属性
             setAttribute(this, attribute)
           }, this)
       })
     },
+
+    // 获取或设置元素的属性值
     prop: function (name, value) {
+      // propMap = {
+      //   tabindex: 'tabIndex',
+      //   readonly: 'readOnly',
+      //   for: 'htmlFor',
+      //   class: 'className',
+      //   maxlength: 'maxLength',
+      //   cellspacing: 'cellSpacing',
+      //   cellpadding: 'cellPadding',
+      //   rowspan: 'rowSpan',
+      //   colspan: 'colSpan',
+      //   usemap: 'useMap',
+      //   frameborder: 'frameBorder',
+      //   contenteditable: 'contentEditable',
+      // }
+
+      // function funcArg(context, arg, idx, payload) {
+      //   return isFunction(arg) ? arg.call(context, idx, payload) : arg
+      // }
+
+      // 属性映射
       name = propMap[name] || name
       return 1 in arguments
-        ? this.each(function (idx) {
+        ? // 设置参数
+          this.each(function (idx) {
             this[name] = funcArg(this, value, idx, this[name])
           })
-        : this[0] && this[0][name]
+        : // 获取属性值
+          this[0] && this[0][name]
     },
 
     // 设置或获取data数据
@@ -1020,14 +1079,14 @@ var Zepto = (function () {
       )
     },
 
-    // 添加class
+    // 添加 class
     addClass: function (name) {
       if (!name) return this
       return this.each(function (idx) {
         // 无 className 属性，说明不是DOM
         if (!('className' in this)) return
         classList = []
-        // 已有class
+        // 获取已有class
         var cls = className(this),
           newName = funcArg(this, name, idx, cls)
 
@@ -1038,19 +1097,27 @@ var Zepto = (function () {
         classList.length && className(this, cls + (cls ? ' ' : '') + classList.join(' '))
       })
     },
+
+    // 删除 class
     removeClass: function (name) {
       return this.each(function (idx) {
+        // 没有 className 不处理
         if (!('className' in this)) return
+        // 不指定class，则删除所有的class
         if (name === undefined) return className(this, '')
+        // 获取已有class
         classList = className(this)
+        // 从className中删除 name
         funcArg(this, name, idx, classList)
           .split(/\s+/g)
           .forEach(function (klass) {
             classList = classList.replace(classRE(klass), ' ')
           })
+        // 删除后重新设置className
         className(this, classList.trim())
       })
     },
+
     toggleClass: function (name, when) {
       if (!name) return this
       return this.each(function (idx) {
@@ -1061,6 +1128,7 @@ var Zepto = (function () {
         })
       })
     },
+
     scrollTop: function (value) {
       if (!this.length) return
       var hasScrollTop = 'scrollTop' in this[0]
@@ -1075,6 +1143,7 @@ var Zepto = (function () {
             }
       )
     },
+
     scrollLeft: function (value) {
       if (!this.length) return
       var hasScrollLeft = 'scrollLeft' in this[0]
@@ -1089,9 +1158,11 @@ var Zepto = (function () {
             }
       )
     },
+
+    // 获取定位信息
     position: function () {
       if (!this.length) return
-
+      // 获取集合中的第一个元素的信息
       var elem = this[0],
         // Get *real* offsetParent
         offsetParent = this.offsetParent(),
