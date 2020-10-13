@@ -181,16 +181,25 @@ var Zepto = (function () {
     return typeof value == 'number' && !cssNumber[dasherize(name)] ? value + 'px' : value
   }
 
+  // 获取元素的默认 display 值
+  // show() 方法需要将display属性恢复为默认值
   function defaultDisplay(nodeName) {
     var element, display
+    // 前文定义 elementDisplay = {}
+    // 不存在则通过创建该元素从而获取该元素的display默认值
     if (!elementDisplay[nodeName]) {
+      // 创建该元素 插入body中
       element = document.createElement(nodeName)
       document.body.appendChild(element)
       display = getComputedStyle(element, '').getPropertyValue('display')
+      // 已获取删除该元素
       element.parentNode.removeChild(element)
+      // 如果为 none 则可能是css样式中将其设置为none, 对结果有干扰，设为默认值 block
       display == 'none' && (display = 'block')
+      // 将元素的display默认值存起来
       elementDisplay[nodeName] = display
     }
+    // 存在则直接返回
     return elementDisplay[nodeName]
   }
 
@@ -543,6 +552,8 @@ var Zepto = (function () {
         })
       )
     },
+
+    // 提取集合的子集元素
     slice: function () {
       return $(slice.apply(this, arguments))
     },
@@ -582,7 +593,7 @@ var Zepto = (function () {
       return this.get()
     },
 
-    // 返回对象集合中的元素长度
+    // 返回对象集合中的元素个数
     size: function () {
       return this.length
     },
@@ -590,6 +601,7 @@ var Zepto = (function () {
     // 从dom节点中删除当前集合中的元素
     remove: function () {
       return this.each(function () {
+        // 父节点删除当前元素
         // document.parentNode 为 null
         if (this.parentNode != null) this.parentNode.removeChild(this)
       })
@@ -749,15 +761,21 @@ var Zepto = (function () {
         selector
       )
     },
+
+    // 获得集合元素的子元素，包括文字和注释节点
     contents: function () {
       return this.map(function () {
+        // 类数组转数组
         return slice.call(this.childNodes)
       })
     },
+
+    // 获取元素的所有兄弟节点
     siblings: function (selector) {
       return filtered(
         this.map(function (i, el) {
           return filter.call(children(el.parentNode), function (child) {
+            // 排除当前元素
             return child !== el
           })
         }),
@@ -779,15 +797,23 @@ var Zepto = (function () {
         return el[property]
       })
     },
+
+    // 使元素显示 去除 display=none
     show: function () {
       return this.each(function () {
+        // 处理内联样式 this.style.display 只能获取内联样式的值
         this.style.display == 'none' && (this.style.display = '')
+        // 处理css样式
         if (getComputedStyle(this, '').getPropertyValue('display') == 'none') this.style.display = defaultDisplay(this.nodeName)
       })
     },
+
+    // 用 newContent 替换掉集合中的所有元素
     replaceWith: function (newContent) {
+      // 先插入新节点再删除旧节点
       return this.before(newContent).remove()
     },
+
     wrap: function (structure) {
       var func = isFunction(structure)
       if (this[0] && !func)
@@ -1147,7 +1173,9 @@ var Zepto = (function () {
     scrollLeft: function (value) {
       if (!this.length) return
       var hasScrollLeft = 'scrollLeft' in this[0]
+      // 获取
       if (value === undefined) return hasScrollLeft ? this[0].scrollLeft : this[0].pageXOffset
+      // 设置
       return this.each(
         hasScrollLeft
           ? function () {

@@ -8,6 +8,9 @@
       .li-active {
         background-color: red;
       }
+      li {
+        /* display: none; */
+      }
     </style>
   </head>
   <body>
@@ -36,7 +39,7 @@
 
   <script src="./zepto.js"></script>
   <script>
-    $('.input3').removeClass('input2')
+    $('.input3').replaceWith('<div>111</div>')
 
     // const b = $("li").filter((index, el) => {
     //     // console.log(index, el)
