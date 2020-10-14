@@ -824,6 +824,7 @@ var Zepto = (function () {
         $(this).wrapAll(func ? structure.call(this, index) : clone ? dom.cloneNode(true) : dom)
       })
     },
+
     wrapAll: function (structure) {
       if (this[0]) {
         $(this[0]).before((structure = $(structure)))
@@ -832,6 +833,7 @@ var Zepto = (function () {
         while ((children = structure.children()).length) structure = children.first()
         $(structure).append(this)
       }
+      // 返回 this 便于链式操作
       return this
     },
     wrapInner: function (structure) {
@@ -843,6 +845,8 @@ var Zepto = (function () {
         contents.length ? contents.wrapAll(dom) : self.append(dom)
       })
     },
+
+    // 子节点替换掉父节点，即移除元素的父节点，元素依然保留
     unwrap: function () {
       this.parent().each(function () {
         $(this).replaceWith($(this).children())
@@ -862,9 +866,16 @@ var Zepto = (function () {
     hide: function () {
       return this.css('display', 'none')
     },
+
+    // 显示或隐藏元素
     toggle: function (setting) {
       return this.each(function () {
         var el = $(this)
+        /**
+         * 判断是否传入参数
+         * 有参数 根据参数setting设置
+         * 无参数 根据 display 当前属性值切换显示与隐藏
+         */
         ;(setting === undefined ? el.css('display') == 'none' : setting) ? el.show() : el.hide()
       })
     },
@@ -896,16 +907,21 @@ var Zepto = (function () {
         : null
     },
 
+    // 获取或者设置集合中所有元素的文本内容
     text: function (text) {
       return 0 in arguments
-        ? this.each(function (idx) {
+        ? // 有参数 设置
+          this.each(function (idx) {
             var newText = funcArg(this, text, idx, this.textContent)
             this.textContent = newText == null ? '' : '' + newText
           })
-        : 0 in this
+        : // 无参数 获取 第一个元素的文本内容
+        0 in this
         ? this[0].textContent
         : null
     },
+
+    // 获取或设置dom元素属性
     attr: function (name, value) {
       var result
       return typeof name == 'string' && !(1 in arguments)
@@ -973,21 +989,27 @@ var Zepto = (function () {
       return data !== null ? deserializeValue(data) : undefined
     },
 
+    // 获取或设置元素的值
     val: function (value) {
       return 0 in arguments
-        ? this.each(function (idx) {
+        ? // 有参数
+          this.each(function (idx) {
+            // 赋值value
             this.value = funcArg(this, value, idx, this.value)
           })
-        : this[0] &&
-            (this[0].multiple
+        : // 无参数 获取集合中第一个元素的value
+          this[0] &&
+            (this[0].multiple // 如果元素是 select 多选
               ? $(this[0])
                   .find('option')
                   .filter(function () {
-                    return this.selected
+                    return this.selected // 获取 option 中 selected 属性为 true 的 value
                   })
                   .pluck('value')
               : this[0].value)
     },
+
+    // 获取元素的位置、宽高属性
     offset: function (coordinates) {
       if (coordinates) {
         return this.each(function (index) {
@@ -1231,21 +1253,34 @@ var Zepto = (function () {
   // for now
   $.fn.detach = $.fn.remove
 
+  // 获取元素的宽度/高度
   // Generate the `width` and `height` functions
   ;['width', 'height'].forEach(function (dimension) {
     var dimensionProperty = dimension.replace(/./, function (m) {
       return m[0].toUpperCase()
-    })
+    }) // width => Width, height => Height
 
     $.fn[dimension] = function (value) {
       var offset,
         el = this[0]
-      if (value === undefined) return isWindow(el) ? el['inner' + dimensionProperty] : isDocument(el) ? el.documentElement['scroll' + dimensionProperty] : (offset = this.offset()) && offset[dimension]
-      else
+      // 无参数 获取属性值
+      if (value === undefined) {
+        return isWindow(el)
+          ? // window 获取 innerWidth/innerHeight 值
+            el['inner' + dimensionProperty]
+          : isDocument(el)
+          ? // document 获取 document.documentElement.[scrollWidth/scrollHeight]
+            el.documentElement['scroll' + dimensionProperty]
+          : // 普通节点 从 this.offset() 中获取
+            (offset = this.offset()) && offset[dimension]
+      }
+      // 有参数 设置属性值
+      else {
         return this.each(function (idx) {
           el = $(this)
           el.css(dimension, funcArg(this, value, idx, el[dimension]()))
         })
+      }
     }
   })
 
