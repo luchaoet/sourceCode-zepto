@@ -810,38 +810,66 @@ var Zepto = (function () {
 
     // 用 newContent 替换掉集合中的所有元素
     replaceWith: function (newContent) {
-      // 先插入新节点再删除旧节点
+      // 先插入新节点再删除旧节点，完成替换
       return this.before(newContent).remove()
     },
 
+    // 在元素外层包裹一层html元素,即设置元素的父节点
     wrap: function (structure) {
       var func = isFunction(structure)
-      if (this[0] && !func)
+      if (this[0] && !func) {
+        // 将 structure 转为 dom 元素
         var dom = $(structure).get(0),
+          /**
+           * 何时需要克隆
+           * 存在父节点,即 structure 为页面中的元素，克隆避免影响原元素
+           * 多个元素需要包裹，防止所有元素包裹在同一个元素中
+           */
           clone = dom.parentNode || this.length > 1
+      }
 
       return this.each(function (index) {
-        $(this).wrapAll(func ? structure.call(this, index) : clone ? dom.cloneNode(true) : dom)
+        $(this).wrapAll(
+          func
+            ? structure.call(this, index)
+            : clone
+            ? // clone dom节点及所有子节点
+              dom.cloneNode(true)
+            : dom
+        )
       })
     },
 
+    /**
+     * 将集合中的元素包裹在 structure 中
+     * 包裹后的位置在集合的第一个元素的位置
+     * 如果 structure 为页面元素，则会被移动过来，所有的元素被插入在 structure 所有子元素后面
+     */
     wrapAll: function (structure) {
       if (this[0]) {
+        // 将 structure 插入至第一个元素的前面
         $(this[0]).before((structure = $(structure)))
         var children
-        // drill down to the inmost element
-        while ((children = structure.children()).length) structure = children.first()
+
+        // 如果 structure 为多层元素，则在 structure 中 寻找元素的插入位置：首个子节点的首个子节点....
+        while ((children = structure.children()).length) {
+          structure = children.first()
+        }
+        // 将所有元素插入 structure 中
         $(structure).append(this)
       }
       // 返回 this 便于链式操作
       return this
     },
+
+    // 集合中所有元素的子节点都包裹在一层dom结构中
     wrapInner: function (structure) {
       var func = isFunction(structure)
       return this.each(function (index) {
         var self = $(this),
           contents = self.contents(),
           dom = func ? structure.call(this, index) : structure
+        // 含有子节点，使用 wrapAll 包裹子节点后插入，无子节点直接插入
         contents.length ? contents.wrapAll(dom) : self.append(dom)
       })
     },
