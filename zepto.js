@@ -1547,6 +1547,8 @@ window.$ === undefined && (window.$ = Zepto)
   }
 
   $.fn.on = function (event, selector, data, callback, one) {
+    console.log(event, selector, data, callback, one)
+
     var autoRemove,
       delegator,
       $this = this
