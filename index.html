@@ -52,6 +52,19 @@
       console.log(1)
     })
 
+    $.ajax({
+      url: 'https://autumnfish.cn/api/joke/list',
+      type: 'get',
+      crossDomain: false,
+      data: {
+        num: 10,
+      },
+      success: (data) => {
+        console.log(data)
+      },
+      error: () => {},
+    })
+
     // console.log(a)
 
     // const b = $("li").filter((index, el) => {

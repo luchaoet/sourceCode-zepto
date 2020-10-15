@@ -324,6 +324,9 @@ var Zepto = (function () {
   // Copy all but undefined properties from one or more
   // objects to the `target` object.
   $.extend = function (target) {
+    // (targetObj, obj1, obj2, ...)
+    // (true, targetObj, obj1, obj2, ...)
+
     // target 第一个参数
     // args 剩余参数
     // arguments 所有的参数
@@ -1547,8 +1550,6 @@ window.$ === undefined && (window.$ = Zepto)
   }
 
   $.fn.on = function (event, selector, data, callback, one) {
-    console.log(event, selector, data, callback, one)
-
     var autoRemove,
       delegator,
       $this = this
@@ -1677,9 +1678,11 @@ window.$ === undefined && (window.$ = Zepto)
   }
 
   // Number of active Ajax requests
+  // ajax 请求次数记录
   $.active = 0
 
   function ajaxStart(settings) {
+    // $.active++ === 0 第一次请求
     if (settings.global && $.active++ === 0) triggerGlobal(settings, null, 'ajaxStart')
   }
   function ajaxStop(settings) {
@@ -1701,16 +1704,19 @@ window.$ === undefined && (window.$ = Zepto)
     triggerGlobal(settings, context, 'ajaxSuccess', [xhr, settings, data])
     ajaxComplete(status, xhr, settings)
   }
-  // type: "timeout", "error", "abort", "parsererror"
+
+  // 错误回调
   function ajaxError(error, type, xhr, settings, deferred) {
+    // type: "timeout", "error", "abort", "parsererror"
     var context = settings.context
     settings.error.call(context, xhr, type, error)
     if (deferred) deferred.rejectWith(context, [xhr, type, error])
     triggerGlobal(settings, context, 'ajaxError', [xhr, settings, error || type])
     ajaxComplete(type, xhr, settings)
   }
-  // status: "success", "notmodified", "error", "timeout", "abort", "parsererror"
+
   function ajaxComplete(status, xhr, settings) {
+    // status: "success", "notmodified", "error", "timeout", "abort", "parsererror"
     var context = settings.context
     settings.complete.call(context, xhr, status)
     triggerGlobal(settings, context, 'ajaxComplete', [xhr, settings])
@@ -1789,6 +1795,7 @@ window.$ === undefined && (window.$ = Zepto)
     global: true,
     // Transport
     xhr: function () {
+      // 创建 xhr 对象
       return new window.XMLHttpRequest()
     },
     // MIME types mapping
@@ -1830,7 +1837,12 @@ window.$ === undefined && (window.$ = Zepto)
     var settings = $.extend({}, options || {}),
       deferred = $.Deferred && $.Deferred(),
       urlAnchor
-    for (key in $.ajaxSettings) if (settings[key] === undefined) settings[key] = $.ajaxSettings[key]
+    // 从 ajaxSettings 中复制属性至 settings 参数
+    for (key in $.ajaxSettings) {
+      if (settings[key] === undefined) {
+        settings[key] = $.ajaxSettings[key]
+      }
+    }
 
     ajaxStart(settings)
 
@@ -1856,16 +1868,24 @@ window.$ === undefined && (window.$ = Zepto)
     }
 
     var mime = settings.accepts[dataType],
+      // {accept: ["Accept", "*/*"]}
       headers = {},
+      // 设置 Request Headers 信息
       setHeader = function (name, value) {
         headers[name.toLowerCase()] = [name, value]
       },
+      // https:
       protocol = /^([\w-]+:)\/\//.test(settings.url) ? RegExp.$1 : window.location.protocol,
+      // 第一步 创建 xhr 对象
       xhr = settings.xhr(),
+      // 保存原生 setRequestHeader 方法
       nativeSetHeader = xhr.setRequestHeader,
+      // 超时定时器
       abortTimeout
 
     if (deferred) deferred.promise(xhr)
+
+    console.log('settings', settings, protocol)
 
     if (!settings.crossDomain) setHeader('X-Requested-With', 'XMLHttpRequest')
     setHeader('Accept', mime || '*/*')
@@ -1876,11 +1896,18 @@ window.$ === undefined && (window.$ = Zepto)
     if (settings.contentType || (settings.contentType !== false && settings.data && settings.type.toUpperCase() != 'GET')) setHeader('Content-Type', settings.contentType || 'application/x-www-form-urlencoded')
 
     if (settings.headers) for (name in settings.headers) setHeader(name, settings.headers[name])
+
+    console.log('headers', headers)
+
+    // 设置请求头信息
     xhr.setRequestHeader = setHeader
 
+    // 第四步 等待接受数据
     xhr.onreadystatechange = function () {
+      // 请求成功
       if (xhr.readyState == 4) {
         xhr.onreadystatechange = empty
+        // 请求成功会清除定时器，防止请求被中断
         clearTimeout(abortTimeout)
         var result,
           error = false
@@ -1899,13 +1926,16 @@ window.$ === undefined && (window.$ = Zepto)
 
           if (error) ajaxError(error, 'parsererror', xhr, settings, deferred)
           else ajaxSuccess(result, xhr, settings, deferred)
-        } else {
+        }
+        // 请求失败
+        else {
           ajaxError(xhr.statusText || null, xhr.status ? 'error' : 'abort', xhr, settings, deferred)
         }
       }
     }
 
     if (ajaxBeforeSend(xhr, settings) === false) {
+      // 中止请求
       xhr.abort()
       ajaxError(null, 'abort', xhr, settings, deferred)
       return xhr
@@ -1914,18 +1944,23 @@ window.$ === undefined && (window.$ = Zepto)
     if (settings.xhrFields) for (name in settings.xhrFields) xhr[name] = settings.xhrFields[name]
 
     var async = 'async' in settings ? settings.async : true
+
+    // 第二步 创建请求
     xhr.open(settings.type, settings.url, async, settings.username, settings.password)
 
     for (name in headers) nativeSetHeader.apply(xhr, headers[name])
 
+    // 超时时间内，上文请求成功会清除该定时器，否则中断请求
     if (settings.timeout > 0)
       abortTimeout = setTimeout(function () {
         xhr.onreadystatechange = empty
+        // 中断请求
         xhr.abort()
         ajaxError(null, 'timeout', xhr, settings, deferred)
       }, settings.timeout)
 
     // avoid sending empty string (#319)
+    // 第三步 发送请求
     xhr.send(settings.data ? settings.data : null)
     return xhr
   }
