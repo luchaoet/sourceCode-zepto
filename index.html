@@ -55,9 +55,18 @@
     $.ajax({
       url: 'https://autumnfish.cn/api/joke/list',
       type: 'get',
+      dataType: 'json',
       crossDomain: false,
+      headers: {
+        a: '*',
+      },
       data: {
         num: 10,
+        arr: [1, 2, 3, [4]],
+        info: {
+          name: 'lucas',
+          age: 20,
+        },
       },
       success: (data) => {
         console.log(data)

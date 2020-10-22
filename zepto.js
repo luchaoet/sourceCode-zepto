@@ -1802,9 +1802,9 @@ window.$ === undefined && (window.$ = Zepto)
     // IIS returns Javascript as "application/x-javascript"
     accepts: {
       script: 'text/javascript, application/javascript, application/x-javascript',
-      json: jsonType,
+      json: jsonType, //  'application/json'
       xml: 'application/xml, text/xml',
-      html: htmlType,
+      html: htmlType, // 'text/html'
       text: 'text/plain',
     },
     // Whether the request is to another domain
@@ -1812,6 +1812,7 @@ window.$ === undefined && (window.$ = Zepto)
     // Default timeout
     timeout: 0,
     // Whether data should be serialized to string
+    // 是否将数据序列化为字符串
     processData: true,
     // Whether the browser should be allowed to cache GET responses
     cache: true,
@@ -1822,15 +1823,30 @@ window.$ === undefined && (window.$ = Zepto)
     return (mime && (mime == htmlType ? 'html' : mime == jsonType ? 'json' : scriptTypeRE.test(mime) ? 'script' : xmlTypeRE.test(mime) && 'xml')) || 'text'
   }
 
+  // 拼接 url 和 序列化为字符串的data
   function appendQuery(url, query) {
     if (query == '') return url
+    // 匹配第一个 & 转为 ？
     return (url + '&' + query).replace(/[&?]{1,2}/, '?')
   }
 
   // serialize payload and append it to the URL for GET requests
   function serializeData(options) {
-    if (options.processData && options.data && $.type(options.data) != 'string') options.data = $.param(options.data, options.traditional)
-    if (options.data && (!options.type || options.type.toUpperCase() == 'GET')) (options.url = appendQuery(options.url, options.data)), (options.data = undefined)
+    if (
+      // 序列化为字符串
+      options.processData &&
+      options.data &&
+      $.type(options.data) != 'string'
+    ) {
+      // data 序列化为字符串
+      // options.traditional 为 undefined，默认未赋值
+      options.data = $.param(options.data, options.traditional)
+    }
+    // get请求 data数据已经序列化为字符串，拼接至url中
+    if (options.data && (!options.type || options.type.toUpperCase() == 'GET')) {
+      options.url = appendQuery(options.url, options.data)
+      options.data = undefined
+    }
   }
 
   $.ajax = function (options) {
@@ -1850,11 +1866,16 @@ window.$ === undefined && (window.$ = Zepto)
       urlAnchor = document.createElement('a')
       urlAnchor.href = settings.url
       urlAnchor.href = urlAnchor.href
+      // 对比页面url与ajax url的协议和域名 不相同则为跨域 true
       settings.crossDomain = originAnchor.protocol + '//' + originAnchor.host !== urlAnchor.protocol + '//' + urlAnchor.host
     }
 
+    // url不存在使用页面url
     if (!settings.url) settings.url = window.location.toString()
+
+    // 处理data参数 序列化为字符串
     serializeData(settings)
+    // console.log('settings', settings)
 
     var dataType = settings.dataType,
       hasPlaceholder = /\?.+=\?/.test(settings.url)
@@ -1862,6 +1883,7 @@ window.$ === undefined && (window.$ = Zepto)
 
     if (settings.cache === false || ((!options || options.cache !== true) && ('script' == dataType || 'jsonp' == dataType))) settings.url = appendQuery(settings.url, '_=' + Date.now())
 
+    // jsonp 调用 ajaxJSONP 方法
     if ('jsonp' == dataType) {
       if (!hasPlaceholder) settings.url = appendQuery(settings.url, settings.jsonp ? settings.jsonp + '=?' : settings.jsonp === false ? '' : 'callback=?')
       return $.ajaxJSONP(settings, deferred)
@@ -1885,19 +1907,25 @@ window.$ === undefined && (window.$ = Zepto)
 
     if (deferred) deferred.promise(xhr)
 
-    console.log('settings', settings, protocol)
-
     if (!settings.crossDomain) setHeader('X-Requested-With', 'XMLHttpRequest')
     setHeader('Accept', mime || '*/*')
     if ((mime = settings.mimeType || mime)) {
       if (mime.indexOf(',') > -1) mime = mime.split(',', 2)[0]
+
+      // overrideMimeType 方法是指定一个MIME类型用于替代服务器指定的类型
+      // 此方法必须在send方法之前调用方为有效
       xhr.overrideMimeType && xhr.overrideMimeType(mime)
     }
-    if (settings.contentType || (settings.contentType !== false && settings.data && settings.type.toUpperCase() != 'GET')) setHeader('Content-Type', settings.contentType || 'application/x-www-form-urlencoded')
 
+    // 默认： “application/x-www-form-urlencoded”
+    // 发送信息至服务器时内容编码类型
+    // 通过设置 false 跳过设置默认值
+    if (settings.contentType || (settings.contentType !== false && settings.data && settings.type.toUpperCase() != 'GET')) {
+      setHeader('Content-Type', settings.contentType || 'application/x-www-form-urlencoded')
+    }
+
+    // 设置 headers
     if (settings.headers) for (name in settings.headers) setHeader(name, settings.headers[name])
-
-    console.log('headers', headers)
 
     // 设置请求头信息
     xhr.setRequestHeader = setHeader
@@ -1907,7 +1935,7 @@ window.$ === undefined && (window.$ = Zepto)
       // 请求成功
       if (xhr.readyState == 4) {
         xhr.onreadystatechange = empty
-        // 请求成功会清除定时器，防止请求被中断
+        // 请求成功会清除定时器，防止执行中断请求
         clearTimeout(abortTimeout)
         var result,
           error = false
@@ -1917,6 +1945,7 @@ window.$ === undefined && (window.$ = Zepto)
 
           try {
             // http://perfectionkills.com/global-eval-what-are-the-options/
+            // (1,eval) 逗号操作符 返回最右边的值 eval
             if (dataType == 'script') (1, eval)(result)
             else if (dataType == 'xml') result = xhr.responseXML
             else if (dataType == 'json') result = blankRE.test(result) ? null : $.parseJSON(result)
@@ -2011,17 +2040,44 @@ window.$ === undefined && (window.$ = Zepto)
 
   var escape = encodeURIComponent
 
+  /**
+   *
+   * data: {
+   *  num: 10,
+   *  arr: [1, 2, 3]
+   *  info: {
+   *    name: 'Luchas',
+   *    age: 20
+   *  }
+   * }
+   * ==>
+   * num: 10
+   * arr[]: 1
+   * arr[]: 2
+   * arr[]: 3
+   * info[name]: Lucas
+   * info[age]: 20
+   */
   function serialize(params, obj, traditional, scope) {
     var type,
       array = $.isArray(obj),
       hash = $.isPlainObject(obj)
     $.each(obj, function (key, value) {
+      // console.log(`array=${array}`, `hash=${hash}`, `scope=${scope}`, `key=${key}`, `value=${value}`)
       type = $.type(value)
+      // value 为数组或对象格式时，需深层遍历，会指定 scope
       if (scope) key = traditional ? scope : scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
       // handle data in serializeArray() format
       if (!scope && array) params.add(value.name, value.value)
       // recurse into nested objects
-      else if (type == 'array' || (!traditional && type == 'object')) serialize(params, value, traditional, key)
+      // 深层遍历数组和对象
+      else if (type == 'array' || (!traditional && type == 'object')) {
+        // 携带数组和对象对应的key，即scope参数
+        // 数组 arr: [1]              => arr[]=1 ;            scope为 arr
+        // 对象 info: {name: 'Lucas'} => info[name]=Lucas ;   scope为 info
+        serialize(params, value, traditional, key)
+      }
+      // value是字符串直接用 key=value
       else params.add(key, value)
     })
   }
@@ -2029,11 +2085,19 @@ window.$ === undefined && (window.$ = Zepto)
   $.param = function (obj, traditional) {
     var params = []
     params.add = function (key, value) {
+      // value是函数的话 获取该函数返回的值
       if ($.isFunction(value)) value = value()
+      // 后面要转义 escape(null) 为 'null', 所以赋值为 ''
       if (value == null) value = ''
+      // 将 key与value 编码后用 = 号连接
+      // 'abc' => 'abc'
+      // null => 'null'
+      // 123 => '123'
+      // 'arr[]' => 'arr%5B%5D'
       this.push(escape(key) + '=' + escape(value))
     }
     serialize(params, obj, traditional)
+    // 字符串中存在转义后的空格 %20，则用 + 号替换
     return params.join('&').replace(/%20/g, '+')
   }
 })(Zepto)
