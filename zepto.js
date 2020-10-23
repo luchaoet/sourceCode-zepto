@@ -1692,7 +1692,12 @@ window.$ === undefined && (window.$ = Zepto)
   // triggers an extra global event "ajaxBeforeSend" that's like "ajaxSend" but cancelable
   function ajaxBeforeSend(xhr, settings) {
     var context = settings.context
-    if (settings.beforeSend.call(context, xhr, settings) === false || triggerGlobal(settings, context, 'ajaxBeforeSend', [xhr, settings]) === false) return false
+    if (
+      // 调用自定义 beforeSend 方法
+      settings.beforeSend.call(context, xhr, settings) === false ||
+      triggerGlobal(settings, context, 'ajaxBeforeSend', [xhr, settings]) === false
+    )
+      return false
 
     triggerGlobal(settings, context, 'ajaxSend', [xhr, settings])
   }
@@ -1705,7 +1710,7 @@ window.$ === undefined && (window.$ = Zepto)
     ajaxComplete(status, xhr, settings)
   }
 
-  // 错误回调
+  // ajax错误回调
   function ajaxError(error, type, xhr, settings, deferred) {
     // type: "timeout", "error", "abort", "parsererror"
     var context = settings.context
@@ -1727,23 +1732,33 @@ window.$ === undefined && (window.$ = Zepto)
   function empty() {}
 
   $.ajaxJSONP = function (options, deferred) {
+    // 如果直接调用 $.ajaxJSONP，并且未设置请求类型type，则调用 $.ajax 去初始化 options
     if (!('type' in options)) return $.ajax(options)
 
+    // 全局的回调函数名称
     var _callbackName = options.jsonpCallback,
+      // 回调函数名称如果是函数则使用函数返回值
+      // 不存在则默认为 jsonp1
       callbackName = ($.isFunction(_callbackName) ? _callbackName() : _callbackName) || 'jsonp' + ++jsonpID,
       script = document.createElement('script'),
+      // 保存回调函数
       originalCallback = window[callbackName],
       responseData,
       abort = function (errorType) {
+        // 取消时只在当前元素上 error 事件
         $(script).triggerHandler('error', errorType || 'abort')
       },
       xhr = { abort: abort },
+      // 超时定时器
       abortTimeout
 
     if (deferred) deferred.promise(xhr)
 
+    // 监听 load 和 error 事件
     $(script).on('load error', function (e, errorType) {
+      // 加载完成或失败清除定时器
       clearTimeout(abortTimeout)
+      // 移除元素上的on绑定的事件并删除元素
       $(script).off().remove()
 
       if (e.type == 'error' || !responseData) {
@@ -1758,6 +1773,7 @@ window.$ === undefined && (window.$ = Zepto)
       originalCallback = responseData = undefined
     })
 
+    // 发送请求前 取消ajax
     if (ajaxBeforeSend(xhr, options) === false) {
       abort('abort')
       return xhr
@@ -1770,6 +1786,7 @@ window.$ === undefined && (window.$ = Zepto)
     script.src = options.url.replace(/\?(.+)=\?/, '?$1=' + callbackName)
     document.head.appendChild(script)
 
+    // 开启超时定时器
     if (options.timeout > 0)
       abortTimeout = setTimeout(function () {
         abort('timeout')
@@ -1851,6 +1868,7 @@ window.$ === undefined && (window.$ = Zepto)
 
   $.ajax = function (options) {
     var settings = $.extend({}, options || {}),
+      // 当包含 $.Deferred 模块时 ajax 支持promise接口链式的回调
       deferred = $.Deferred && $.Deferred(),
       urlAnchor
     // 从 ajaxSettings 中复制属性至 settings 参数
@@ -1875,17 +1893,36 @@ window.$ === undefined && (window.$ = Zepto)
 
     // 处理data参数 序列化为字符串
     serializeData(settings)
-    // console.log('settings', settings)
+    console.log('settings', settings)
 
     var dataType = settings.dataType,
+      // 有 xxx?cb=callback 类似形式，为jsonp
       hasPlaceholder = /\?.+=\?/.test(settings.url)
     if (hasPlaceholder) dataType = 'jsonp'
-
-    if (settings.cache === false || ((!options || options.cache !== true) && ('script' == dataType || 'jsonp' == dataType))) settings.url = appendQuery(settings.url, '_=' + Date.now())
+    if (
+      // 不允许缓存
+      settings.cache === false ||
+      // dataType设置为 jsonp 和 script 并且 不允许缓存
+      ((!options || options.cache !== true) && ('script' == dataType || 'jsonp' == dataType))
+    ) {
+      // 参数中拼接时间戳
+      settings.url = appendQuery(settings.url, '_=' + Date.now())
+    }
 
     // jsonp 调用 ajaxJSONP 方法
     if ('jsonp' == dataType) {
-      if (!hasPlaceholder) settings.url = appendQuery(settings.url, settings.jsonp ? settings.jsonp + '=?' : settings.jsonp === false ? '' : 'callback=?')
+      // url中没有 xxx?cb=callback 类似形式
+      if (!hasPlaceholder) {
+        settings.url = appendQuery(
+          settings.url,
+          settings.jsonp // cb
+            ? // cb=?
+              settings.jsonp + '=?'
+            : settings.jsonp === false
+            ? '' // jsonp参数 为 false 不拼接任何
+            : 'callback=?' // 默认回调函数的key值为 callback
+        )
+      }
       return $.ajaxJSONP(settings, deferred)
     }
 
@@ -1963,6 +2000,7 @@ window.$ === undefined && (window.$ = Zepto)
       }
     }
 
+    // 发送请求前 取消ajax
     if (ajaxBeforeSend(xhr, settings) === false) {
       // 中止请求
       xhr.abort()

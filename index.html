@@ -52,27 +52,46 @@
       console.log(1)
     })
 
+    // $.ajax({
+    //   url: 'https://autumnfish.cn/api/joke/list',
+    //   type: 'get',
+    //   dataType: 'json',
+    //   crossDomain: false,
+    //   headers: {
+    //     a: '*',
+    //   },
+    //   data: {
+    //     num: 10,
+    //     arr: [1, 2, 3, [4]],
+    //     info: {
+    //       name: 'lucas',
+    //       age: 20,
+    //     },
+    //   },
+    //   success: (data) => {
+    //     console.log(data)
+    //   },
+    //   error: () => {},
+    // })
+
     $.ajax({
-      url: 'https://autumnfish.cn/api/joke/list',
-      type: 'get',
-      dataType: 'json',
-      crossDomain: false,
-      headers: {
-        a: '*',
-      },
+      url: 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',
+      dataType: 'jsonp',
       data: {
-        num: 10,
-        arr: [1, 2, 3, [4]],
-        info: {
-          name: 'lucas',
-          age: 20,
-        },
+        wd: '前端',
+        // cb: 'callback',
       },
+      jsonp: 'cb',
+      jsonpCallback: 'callback',
       success: (data) => {
         console.log(data)
       },
       error: () => {},
     })
+
+    window.callback = (data) => {
+      console.log(data.s)
+    }
 
     // console.log(a)
 
