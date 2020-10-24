@@ -1780,7 +1780,7 @@ window.$ === undefined && (window.$ = Zepto)
       originalCallback = responseData = undefined
     })
 
-    // 发送请求前 取消ajax
+    // 发送请求前 取消ajax操作
     if (ajaxBeforeSend(xhr, options) === false) {
       abort('abort')
       return xhr
@@ -1859,6 +1859,7 @@ window.$ === undefined && (window.$ = Zepto)
   }
 
   // serialize payload and append it to the URL for GET requests
+  // data 序列化为字符串
   function serializeData(options) {
     if (
       // 序列化为字符串
@@ -1891,6 +1892,7 @@ window.$ === undefined && (window.$ = Zepto)
 
     ajaxStart(settings)
 
+    // 如果没有开启跨域 根据协议和域名判断并设置是否跨域
     if (!settings.crossDomain) {
       urlAnchor = document.createElement('a')
       urlAnchor.href = settings.url
@@ -1904,8 +1906,9 @@ window.$ === undefined && (window.$ = Zepto)
 
     // 处理data参数 序列化为字符串
     serializeData(settings)
-    console.log('settings', settings)
+    // console.log('settings', settings)
 
+    // jsonp请求的前期处理
     var dataType = settings.dataType,
       // 有 xxx?cb=callback 类似形式，为jsonp
       hasPlaceholder = /\?.+=\?/.test(settings.url)
@@ -1920,7 +1923,7 @@ window.$ === undefined && (window.$ = Zepto)
       settings.url = appendQuery(settings.url, '_=' + Date.now())
     }
 
-    // jsonp 调用 ajaxJSONP 方法
+    // jsonp 调用 ajaxJSONP 方法 与其他类型不同
     if ('jsonp' == dataType) {
       // url中没有 xxx?cb=callback 类似形式
       if (!hasPlaceholder) {
@@ -1956,12 +1959,14 @@ window.$ === undefined && (window.$ = Zepto)
     if (deferred) deferred.promise(xhr)
 
     if (!settings.crossDomain) setHeader('X-Requested-With', 'XMLHttpRequest')
+    // 默认接受任何类型
     setHeader('Accept', mime || '*/*')
+    // 如果设置了mimeType，则覆盖 mime
     if ((mime = settings.mimeType || mime)) {
       if (mime.indexOf(',') > -1) mime = mime.split(',', 2)[0]
 
       // overrideMimeType 方法是指定一个MIME类型用于替代服务器指定的类型
-      // 此方法必须在send方法之前调用方为有效
+      // 此方法必须在send方法之前调用才有效
       xhr.overrideMimeType && xhr.overrideMimeType(mime)
     }
 
@@ -1975,7 +1980,7 @@ window.$ === undefined && (window.$ = Zepto)
     // 设置 headers
     if (settings.headers) for (name in settings.headers) setHeader(name, settings.headers[name])
 
-    // 设置请求头信息
+    // 设置请求头函数
     xhr.setRequestHeader = setHeader
 
     // 第四步 等待接受数据
@@ -2001,8 +2006,11 @@ window.$ === undefined && (window.$ = Zepto)
             error = e
           }
 
-          if (error) ajaxError(error, 'parsererror', xhr, settings, deferred)
-          else ajaxSuccess(result, xhr, settings, deferred)
+          if (error) {
+            ajaxError(error, 'parsererror', xhr, settings, deferred)
+          } else {
+            ajaxSuccess(result, xhr, settings, deferred)
+          }
         }
         // 请求失败
         else {
@@ -2021,11 +2029,13 @@ window.$ === undefined && (window.$ = Zepto)
 
     if (settings.xhrFields) for (name in settings.xhrFields) xhr[name] = settings.xhrFields[name]
 
+    // 异步参数
     var async = 'async' in settings ? settings.async : true
 
     // 第二步 创建请求
     xhr.open(settings.type, settings.url, async, settings.username, settings.password)
 
+    // 设置请求头
     for (name in headers) nativeSetHeader.apply(xhr, headers[name])
 
     // 超时时间内，上文请求成功会清除该定时器，否则中断请求
@@ -2044,8 +2054,12 @@ window.$ === undefined && (window.$ = Zepto)
   }
 
   // handle optional data/success arguments
+  // 参数处理 便于调用 $.ajax
   function parseArguments(url, data, success, dataType) {
+    // 如果请求不需要传入data参数，则第二个参数接收的是success回调函数，需要判断data是不是函数
+    // 参数向前移一位接收，data空缺，赋值undefined
     if ($.isFunction(data)) (dataType = success), (success = data), (data = undefined)
+    // 如果成功回调函数success也没有传入，则该位置为dataType的值，success空缺，赋值undefined
     if (!$.isFunction(success)) (dataType = success), (success = undefined)
     return {
       url: url,

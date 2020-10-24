@@ -74,26 +74,38 @@
     //   error: () => {},
     // })
 
-    window.callback = (data) => {
-      console.log('callback', data.s)
-    }
+    // window.callback = (data) => {
+    //   console.log('callback', data.s)
+    // }
 
-    $.ajax({
-      url: 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',
-      dataType: 'jsonp',
-      data: {
-        wd: '前端',
-        // cb: 'callback',
-      },
-      jsonp: 'cb',
-      jsonpCallback: 'callback',
-      success: (data) => {
-        console.log('success', data.s)
-      },
-      error: () => {},
+    // $.ajax({
+    //   url: 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',
+    //   dataType: 'jsonp',
+    //   data: {
+    //     wd: '前端',
+    //     // cb: 'callback',
+    //   },
+    //   jsonp: 'cb',
+    //   jsonpCallback: 'callback',
+    //   success: (data) => {
+    //     console.log('success', data.s)
+    //   },
+    //   error: () => {},
+    // })
+
+    // $.get(
+    //   'https://autumnfish.cn/api/joke/list',
+    //   {
+    //     num: 10,
+    //   },
+    //   function (data) {
+    //     console.log(data)
+    //   }
+    // )
+
+    $('p').load('./test.html', function (data) {
+      console.log(data)
     })
-
-    // console.log(a)
 
     // const b = $("li").filter((index, el) => {
     //     // console.log(index, el)
