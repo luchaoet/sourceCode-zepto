@@ -1728,7 +1728,7 @@ window.$ === undefined && (window.$ = Zepto)
     ajaxStop(settings)
   }
 
-  // Empty function, used as default callback
+  // 定义一个默认的空函数
   function empty() {}
 
   $.ajaxJSONP = function (options, deferred) {
@@ -1741,8 +1741,9 @@ window.$ === undefined && (window.$ = Zepto)
       // 不存在则默认为 jsonp1
       callbackName = ($.isFunction(_callbackName) ? _callbackName() : _callbackName) || 'jsonp' + ++jsonpID,
       script = document.createElement('script'),
-      // 保存回调函数
+      // 如果用户自己写了全局回调函数，因为后面会覆盖掉，先保存，便于成功后触发该函数
       originalCallback = window[callbackName],
+      // 接受请求成功后的数据
       responseData,
       abort = function (errorType) {
         // 取消时只在当前元素上 error 事件
@@ -1761,15 +1762,21 @@ window.$ === undefined && (window.$ = Zepto)
       // 移除元素上的on绑定的事件并删除元素
       $(script).off().remove()
 
+      // url请求失败或者没有拿到数据
       if (e.type == 'error' || !responseData) {
+        // 失败回调
         ajaxError(null, errorType || 'error', xhr, options, deferred)
       } else {
+        // 成功回调 返回数据
         ajaxSuccess(responseData[0], xhr, options, deferred)
       }
-
+      // 请求结束 将用户的回调函数放回去，不篡改用户函数
       window[callbackName] = originalCallback
-      if (responseData && $.isFunction(originalCallback)) originalCallback(responseData[0])
-
+      // 拿到请求后的数据，触发用户自己的全局回调函数
+      if (responseData && $.isFunction(originalCallback)) {
+        originalCallback(responseData[0])
+      }
+      // 最后清除内部变量
       originalCallback = responseData = undefined
     })
 
@@ -1779,16 +1786,20 @@ window.$ === undefined && (window.$ = Zepto)
       return xhr
     }
 
+    // 设置jsonp全局回调函数 用于保存请求的数据
+    // 如果用户已经定义了该函数，后面请求结束会恢复为用户自己的函数
     window[callbackName] = function () {
       responseData = arguments
     }
 
+    // 回调函数放到url中，将script插入至dom结构中，请求便开始了
     script.src = options.url.replace(/\?(.+)=\?/, '?$1=' + callbackName)
     document.head.appendChild(script)
 
     // 开启超时定时器
     if (options.timeout > 0)
       abortTimeout = setTimeout(function () {
+        // 超时取消请求
         abort('timeout')
       }, options.timeout)
 

@@ -74,6 +74,10 @@
     //   error: () => {},
     // })
 
+    window.callback = (data) => {
+      console.log('callback', data.s)
+    }
+
     $.ajax({
       url: 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',
       dataType: 'jsonp',
@@ -84,14 +88,10 @@
       jsonp: 'cb',
       jsonpCallback: 'callback',
       success: (data) => {
-        console.log(data)
+        console.log('success', data.s)
       },
       error: () => {},
     })
-
-    window.callback = (data) => {
-      console.log(data.s)
-    }
 
     // console.log(a)
 
