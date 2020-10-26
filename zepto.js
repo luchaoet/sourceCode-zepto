@@ -63,10 +63,11 @@ var Zepto = (function () {
       frameborder: 'frameBorder',
       contenteditable: 'contentEditable',
     },
-    // 是否为数组
+    // 是否为数组，Array.isArray是ES 5.1推出的，不支持IE6~8
     isArray =
       Array.isArray ||
       function (object) {
+        // 是否为 Array 上的实例
         return object instanceof Array
       }
 
@@ -323,6 +324,9 @@ var Zepto = (function () {
 
   // Copy all but undefined properties from one or more
   // objects to the `target` object.
+  // 将参数中的其他对象属性复制到第一个对象target中并返回
+  // 如果第一个参数target为 true, 则将后续所有的对象属性复制到一个对象中并返回该对象
+  // 其中属性值为 undefined，则不复制
   $.extend = function (target) {
     // (targetObj, obj1, obj2, ...)
     // (true, targetObj, obj1, obj2, ...)
