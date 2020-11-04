@@ -397,7 +397,7 @@ var Zepto = (function () {
         return false
       }
 
-  // 传入字符串时返回字符串，传入函数时，根据传入的函数返回结果
+  // 传入函数时，根据传入的函数返回结果, 其他类型时不做处理
   function funcArg(context, arg, idx, payload) {
     return isFunction(arg) ? arg.call(context, idx, payload) : arg
   }
@@ -411,9 +411,12 @@ var Zepto = (function () {
   // 设置或获取元素类名
   function className(node, value) {
     var klass = node.className || '',
+      // svg标签
       svg = klass && klass.baseVal !== undefined
 
+    // 没有第二个参数 则为获取class
     if (value === undefined) return svg ? klass.baseVal : klass
+    // 设置class
     svg ? (klass.baseVal = value) : (node.className = value)
   }
 
@@ -1164,19 +1167,23 @@ var Zepto = (function () {
 
     // 添加 class
     addClass: function (name) {
+      // 没有参数 不做任何处理
       if (!name) return this
       return this.each(function (idx) {
         // 无 className 属性，说明不是DOM
         if (!('className' in this)) return
         classList = []
-        // 获取已有class
+        // 获取已有class（空格连接的字符串）
         var cls = className(this),
+          // 此处实现了让name参数可以是函数
           newName = funcArg(this, name, idx, cls)
 
         // 空格分割class
         newName.split(/\s+/g).forEach(function (klass) {
+          // 设置前判断下当前的class,元素中是否已经有了，保存当前元素没有的class，防止类型重复
           if (!$(this).hasClass(klass)) classList.push(klass)
         }, this)
+        // 设置时将新旧class拼接起来
         classList.length && className(this, cls + (cls ? ' ' : '') + classList.join(' '))
       })
     },
@@ -1324,8 +1331,7 @@ var Zepto = (function () {
     for (var i = 0, len = node.childNodes.length; i < len; i++) traverseNode(node.childNodes[i], fun)
   }
 
-  // Generate the `after`, `prepend`, `before`, `append`,
-  // `insertAfter`, `insertBefore`, `appendTo`, and `prependTo` methods.
+  // Generate the `after`, `prepend`, `before`, `append`, `insertAfter`, `insertBefore`, `appendTo`, and `prependTo` methods.
   adjacencyOperators.forEach(function (operator, operatorIndex) {
     // 内部插入
     var inside = operatorIndex % 2 //=> prepend, append
