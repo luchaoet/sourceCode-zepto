@@ -1332,6 +1332,7 @@ var Zepto = (function () {
   }
 
   // Generate the `after`, `prepend`, `before`, `append`, `insertAfter`, `insertBefore`, `appendTo`, and `prependTo` methods.
+  // adjacencyOperators ["after", "prepend", "before", "append"]
   adjacencyOperators.forEach(function (operator, operatorIndex) {
     // 内部插入
     var inside = operatorIndex % 2 //=> prepend, append
@@ -1340,6 +1341,8 @@ var Zepto = (function () {
       // arguments can be nodes, arrays of nodes, Zepto objects and HTML strings
       var argType,
         nodes = $.map(arguments, function (arg) {
+          console.log('arguments', arguments)
+          console.log('arg', arg)
           argType = type(arg) // 参数类型
           return argType == 'object' || argType == 'array' || arg == null ? arg : zepto.fragment(arg)
         }),
@@ -1347,6 +1350,8 @@ var Zepto = (function () {
         copyByClone = this.length > 1
 
       if (nodes.length < 1) return this
+
+      console.log('nodes', nodes)
 
       return this.each(function (_, target) {
         parent = inside ? target : target.parentNode
