@@ -1337,12 +1337,11 @@ var Zepto = (function () {
     // 内部插入
     var inside = operatorIndex % 2 //=> prepend, append
 
+    // "after", "prepend", "before", "append" 四个函数
     $.fn[operator] = function () {
-      // arguments can be nodes, arrays of nodes, Zepto objects and HTML strings
       var argType,
+        // arguments 可能是dom, dom数组, zepto元素， html字符串
         nodes = $.map(arguments, function (arg) {
-          console.log('arguments', arguments)
-          console.log('arg', arg)
           argType = type(arg) // 参数类型
           return argType == 'object' || argType == 'array' || arg == null ? arg : zepto.fragment(arg)
         }),
@@ -1350,8 +1349,6 @@ var Zepto = (function () {
         copyByClone = this.length > 1
 
       if (nodes.length < 1) return this
-
-      console.log('nodes', nodes)
 
       return this.each(function (_, target) {
         parent = inside ? target : target.parentNode
@@ -1378,6 +1375,7 @@ var Zepto = (function () {
     // prepend  => prependTo
     // before   => insertBefore
     // append   => appendTo
+    // insertAfter, insertBefore, appendTo, prependTo 这四个函数
     $.fn[inside ? operator + 'To' : 'insert' + (operatorIndex ? 'Before' : 'After')] = function (html) {
       $(html)[operator](this)
       return this
