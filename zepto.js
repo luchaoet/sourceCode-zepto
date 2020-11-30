@@ -205,9 +205,12 @@ var Zepto = (function () {
   }
 
   function children(element) {
+    // children 包括子节点中的元素节点
+    // childNodes 包括所有类型的节点
     return 'children' in element
       ? slice.call(element.children)
       : $.map(element.childNodes, function (node) {
+          // 返回元素节点
           if (node.nodeType == 1) return node
         })
   }
@@ -962,14 +965,22 @@ var Zepto = (function () {
     // 获取或设置dom元素属性
     attr: function (name, value) {
       var result
-      return typeof name == 'string' && !(1 in arguments)
-        ? !this.length || this[0].nodeType !== 1
-          ? undefined
-          : !(result = this[0].getAttribute(name)) && name in this[0]
-          ? this[0][name]
-          : result
-        : this.each(function (idx) {
+      console.log(this)
+      return typeof name == 'string' && !(1 in arguments) // 只有一个参数，并且为字符串类型
+        ? // 获取属性
+          //集合中不存在元素或者第一个元素不是元素节点
+          !this.length || this[0].nodeType !== 1
+          ? // 返回 undefined
+            undefined
+          : // 属性不能通过 getAttribute 获取
+          !(result = this[0].getAttribute(name)) && name in this[0]
+          ? this[0][name] // 不能通过 getAttribute 获取的属性
+          : result // 可以通过 getAttribute 获取的属性
+        : // 设置属性
+          this.each(function (idx) {
+            // 不是元素节点不操作
             if (this.nodeType !== 1) return
+            // 第一个参数为对象 循环设置属性
             if (isObject(name)) for (key in name) setAttribute(this, key, name[key])
             else setAttribute(this, name, funcArg(this, value, idx, this.getAttribute(name)))
           })
