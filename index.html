@@ -11,6 +11,9 @@
       li {
         /* display: none; */
       }
+      div:not(em) {
+        background: red;
+      }
     </style>
   </head>
   <body>
@@ -46,16 +49,36 @@
     <br />
     <br />
 
-    <p>p</p>
+    <p class="testp" data-name="lucas">p</p>
 
     <div>11</div>
-    <button>button</button>
+    <div>
+      div
+      <em>22</em>
+    </div>
+    <button disabled="disabled">button</button>
+    <a href="http://www.baidu.com" disabled>a标签没有disabled</a>
   </body>
 
   <script src="./zepto.js"></script>
   <script>
-    const _class = $('em').attr('class')
-    console.log(_class)
+    // var input = $('.input')
+    // console.log(input.closest('input', 'input'))
+
+    // const p = $('.testp')
+    // const _p = p.data('name', 'name')
+    // console.log(_p)
+
+    $('li').each((el, index) => {
+      console.log(el, index)
+      return false
+    })
+
+    // const _class = $('em').attr('class')
+    // console.log(_class)
+
+    // input button select option 有disabled属性 默认返回 False, disabled 或者 disabled="disabled" 都是返回 True
+    // 其他元素没有disabled属性 返回 None
 
     // $.ajax({
     //   url: 'https://autumnfish.cn/api/joke/list',

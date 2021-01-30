@@ -433,7 +433,18 @@ var Zepto = (function () {
   // String  => self
   function deserializeValue(value) {
     try {
-      return value ? value == 'true' || (value == 'false' ? false : value == 'null' ? null : +value + '' == value ? +value : /^[\[\{]/.test(value) ? $.parseJSON(value) : value) : value
+      return value
+        ? value == 'true' ||
+            (value == 'false'
+              ? false // 'false' => false
+              : value == 'null'
+              ? null // 'null' => null
+              : +value + '' == value
+              ? +value
+              : /^[\[\{]/.test(value)
+              ? $.parseJSON(value) // JSON
+              : value)
+        : value
     } catch (e) {
       return value
     }
@@ -732,8 +743,12 @@ var Zepto = (function () {
     closest: function (selector, context) {
       var node = this[0],
         collection = false
+
       if (typeof selector == 'object') collection = $(selector)
-      while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector))) node = node !== context && !isDocument(node) && node.parentNode
+      while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector))) {
+        console.log(111)
+        node = node !== context && !isDocument(node) && node.parentNode
+      }
       return $(node)
     },
 
@@ -965,7 +980,6 @@ var Zepto = (function () {
     // 获取或设置dom元素属性
     attr: function (name, value) {
       var result
-      console.log(this)
       return typeof name == 'string' && !(1 in arguments) // 只有一个参数，并且为字符串类型
         ? // 获取属性
           //集合中不存在元素或者第一个元素不是元素节点
@@ -1032,9 +1046,12 @@ var Zepto = (function () {
 
     // 设置或获取data数据
     data: function (name, value) {
+      // data-xxx
       var attrName = 'data-' + name.replace(capitalRE, '-$1').toLowerCase()
-      var data = 1 in arguments ? this.attr(attrName, value) : this.attr(attrName)
-
+      var data =
+        1 in arguments
+          ? this.attr(attrName, value) // 设置属性，返回的是zepto集合
+          : this.attr(attrName) // 获取
       return data !== null ? deserializeValue(data) : undefined
     },
 
@@ -1091,7 +1108,7 @@ var Zepto = (function () {
       // 一个参数 获取单一属性值
       if (arguments.length < 2) {
         var computedStyle,
-          element = this[0] // 元素集合中的第一个元素 为什么不是指定元素？？？
+          element = this[0] // 集合中的第一个元素
         if (!element) return
         // 元素所有的css属性与属性值
         computedStyle = getComputedStyle(element, '')
@@ -1115,9 +1132,8 @@ var Zepto = (function () {
           return props
         }
         /**
-         * 此处忽略一个参数 并且是对象时的情况
+         * 此处忽略了 一个参数并且是对象时的情况 后面会作为设置属性去处理
          * $('xxx').css({'background':'red'})
-         * 放到后面设置属性时去处理
          */
       }
 
@@ -1129,13 +1145,10 @@ var Zepto = (function () {
          */
         if (!value && value !== 0) {
           this.each(function () {
+            // 移除style对象的一个属性
             this.style.removeProperty(dasherize(property))
           })
         } else {
-          /**
-           * 清除样式
-           * element.css('background-color', '')
-           */
           css = dasherize(property) + ':' + maybeAddPx(property, value)
         }
       } else {
@@ -1149,6 +1162,7 @@ var Zepto = (function () {
       }
 
       return this.each(function () {
+        // 设置css
         this.style.cssText += ';' + css
       })
     },

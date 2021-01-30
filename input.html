@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>input_text 测试</title>
+	<style>
+		* {
+			/* margin: 0;
+			padding: 0; */
+			box-sizing: border-box;
+		}
+		input[id$="-input"] {
+			padding: 8px;
+			width: 214px;
+			border-radius: 4px;
+			font-size: 18px;
+		}
+		div[id$="-root"] h3{
+			display: flex;
+			align-items: center;
+		}
+		div[id$="-root"] h3 span{
+			display: inline-block;
+			line-height: 20px;
+			min-width: 40px;
+			padding: 10px;
+			margin: 0 10px;
+			background-color: pink;
+			border-radius: 2px;
+		}
+	</style>
+</head>
+<body>
+    <h1>前端不同框架下的输入测试</h1>
+    <hr>
+    <div id="jquery-root">
+        <h2>Jquery 框架</h2>
+		<input id='jquery-text-input' placeholder="文本输入框" type="text">
+		<h3>input[文本] value: <span id="text-value-wrap"></span><button id="text-update">获取/更新</button></h3>
+
+		<input id='jquery-password-input' placeholder="密码输入框" type="password">
+		<h3>
+			input[密码] value: 
+			<span id="password-value-wrap"></span>
+			<button id="password-update">获取/更新</button>
+		</h3>
+
+		<form>
+			<input type="radio" name="category0" id="a0" value="A" /><label for="a0">A</label>
+			<input type="radio" name="category0" id="b0" value="B" /><label for="b0">B</label>
+			<input type="radio" name="category0" id="c0" value="C" /><label for="c0">C</label>
+		</form>
+		<h3>
+			单选 value: 
+			<span id="radio-value-wrap"></span>
+			<button id="radio-update">获取/更新</button>
+		</h3>
+
+		<form>
+			<input type="checkbox" name="category1" id="a1" value="A" /><label for="a1">A</label>
+			<input type="checkbox" name="category1" id="b1" value="B" /><label for="b1">B</label>
+			<input type="checkbox" name="category1" id="c1" value="C" /><label for="c1">C</label>
+		</form>
+		<h3>
+			多选 value: 
+			<span id="checkbox-value-wrap"></span>
+			<button id="checkbox-update">获取/更新</button>
+		</h3>
+
+
+    </div>
+    <hr>
+    <div id="vue-root">
+		<h2>Vue 框架</h2>
+
+		<input id='vue-text-input' placeholder="文本输入框" type="text" v-model='vueInputTextValue'>
+		<h3>input[文本] value: <span>{{vueInputTextValue}}</span></h3>
+
+		<input id='vue-password-input' placeholder="密码输入框" type="password" v-model='vueInputPasswordValue'>
+		<h3>input[密码] value: <span>{{vueInputPasswordValue}}</span></h3>
+
+		<form>
+			<input type="radio" name="category2" id="a2" value="A" @change="radioChange('A')" /><label for="a2">A</label>
+			<input type="radio" name="category2" id="b2" value="B" @change="radioChange('B')" /><label for="b2">B</label>
+			<input type="radio" name="category2" id="c2" value="C" @change="radioChange('C')" /><label for="c2">C</label>
+		</form>
+		<h3>单选 value: <span>{{vueInputRadioValue}}</span></h3>
+
+		<form>
+			<input type="checkbox" name="category3" id="a3" value="A" @change="checkboxChange('A')" /><label for="a3">A</label>
+			<input type="checkbox" name="category3" id="b3" value="B" @change="checkboxChange('B')" /><label for="b3">B</label>
+			<input type="checkbox" name="category3" id="c3" value="C" @change="checkboxChange('C')" /><label for="c3">C</label>
+		</form>
+		<h3>多选 value: <span>{{vueInputCheckboxValue.join(',')}}</span></h3>
+
+    </div>
+    <hr>
+    <div>
+        <h2>React 框架</h2>
+        <div id="react-root"></div>
+    </div>
+    <hr>
+</body>
+<!-- jquery -->
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script>
+	$('#text-update').click(() => {
+		var val = $('#jquery-text-input').val();
+		$('#text-value-wrap').html(val || '')
+	})
+	$('#password-update').click(() => {
+		var val = $('#jquery-password-input').val();
+		$('#password-value-wrap').html(val || '')
+	})
+	$('#radio-update').click(function() {
+		var val = $('input:radio[name=category0]:checked').val();
+		$('#radio-value-wrap').html(val || '')
+	})
+
+	$('#checkbox-update').click(function() {
+		var arr = $('input:checkbox[name=category1]:checked');
+		var value = [];
+		for(var i = 0; i < arr.length; i++) {
+			var v = $(arr[i]).val();
+			value.push(v)
+		}
+		$('#checkbox-value-wrap').html(value.join(','))
+	})
+</script>
+
+<!-- vue  -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script>
+var app = new Vue({
+  el: '#vue-root',
+  data: {
+	vueInputTextValue: '',
+	vueInputPasswordValue: '',
+
+	vueInputRadioValue: '',
+	vueInputCheckboxValue: []
+  },
+  methods: {
+	radioChange(v) {
+		this.vueInputRadioValue = v
+	},
+	checkboxChange(v) {
+		const vueInputCheckboxValue = [...this.vueInputCheckboxValue];
+		const index = vueInputCheckboxValue.indexOf(v);
+		if(index === -1) {
+			vueInputCheckboxValue.push(v)
+		}else{
+			vueInputCheckboxValue.splice(index, 1)
+		}
+		vueInputCheckboxValue.sort();
+		this.vueInputCheckboxValue = vueInputCheckboxValue;
+	}
+  }
+})
+</script>
+
+<!-- react  -->
+<script src="https://cdn.bootcdn.net/ajax/libs/react/16.13.1/umd/react.production.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/react-dom/16.13.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/babel-standalone/7.0.0-beta.3/babel.min.js"></script>
+<script type="text/babel">
+    const compsButton = React.createElement(() => {
+      const { useEffect, useRef, useState } = window.React;
+
+	  const [reactInputTextValue, setReactInputTextValue] = useState();
+	  const [reactInputPasswordValue, setReactInputPasswordValue] = useState();
+	  const [reactInputRadioValue, setReactInputRadioValue] = useState();
+	  const [reactInputCheckboxValue, setReactInputCheckboxValue] = useState([]);
+
+      function textInputChange(e) {
+		const v = e.target.value;
+		setReactInputTextValue(v)
+	  }
+	  
+	  function passwordInputChange(e) {
+		const v = e.target.value;
+		setReactInputPasswordValue(v)
+	  }
+
+	  function radioChange(v) {
+		setReactInputRadioValue(v)
+	  }
+
+	  function checkboxChange(v) {
+			const _reactInputCheckboxValue = [...reactInputCheckboxValue];
+			const index = _reactInputCheckboxValue.indexOf(v);
+			if(index === -1) {
+				_reactInputCheckboxValue.push(v)
+			}else{
+				_reactInputCheckboxValue.splice(index, 1)
+			}
+			_reactInputCheckboxValue.sort();
+			setReactInputCheckboxValue(_reactInputCheckboxValue)
+	  }
+
+      return (
+		<div>
+			<input id='react-text-input' placeholder="文本输入框" type="text" value={reactInputTextValue} onChange={e => textInputChange(e)} />
+			<h3>input[文本] value: <span>{reactInputTextValue}</span></h3>
+
+			<input id='react-password-input' placeholder="密码输入框" type="password" value={reactInputPasswordValue} onChange={e => passwordInputChange(e)} />
+			<h3>input[密码] value: <span>{reactInputPasswordValue}</span></h3>
+
+			<form>
+				<input type="radio" name="category2" id="a2" value="A" onChange={() => radioChange('A')} /><label for="a2">A</label>
+				<input type="radio" name="category2" id="b2" value="B" onChange={() => radioChange('B')} /><label for="b2">B</label>
+				<input type="radio" name="category2" id="c2" value="C" onChange={() => radioChange('C')} /><label for="c2">C</label>
+			</form>
+			<h3>单选 value: <span>{reactInputRadioValue}</span></h3>
+
+			<form>
+				<input type="checkbox" name="category3" id="a3" value="A" onChange={() => checkboxChange('A')} /><label for="a3">A</label>
+				<input type="checkbox" name="category3" id="b3" value="B" onChange={() => checkboxChange('B')} /><label for="b3">B</label>
+				<input type="checkbox" name="category3" id="c3" value="C" onChange={() => checkboxChange('C')} /><label for="c3">C</label>
+			</form>
+			<h3>多选 value: <span>{reactInputCheckboxValue.join(',')}</span></h3>
+
+		</div>
+      )
+    });
+    ReactDOM.render(<div>{compsButton}</div>, document.getElementById("react-root"));
+</script>
+</html>
