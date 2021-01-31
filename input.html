@@ -13,6 +13,10 @@
 		body {
 			padding-bottom: 100px;
 		}
+		div[id$="-root"] {
+			padding: 5px 30px;
+			background-color: #333;
+		}
 		input[id$="-input"] {
 			padding: 8px;
 			width: 214px;
@@ -128,9 +132,9 @@
 
     </div>
     <hr>
-    <div>
+    <div id="react-root">
         <h2>React 框架</h2>
-        <div id="react-root"></div>
+        <div id="react-content"></div>
     </div>
     <hr>
 </body>
@@ -304,10 +308,9 @@ var app = new Vue({
 				下拉框 value: 
 				<span>{reactSelectValue}</span>
 			</h3>
-
 		</div>
       )
     });
-    ReactDOM.render(<div>{compsButton}</div>, document.getElementById("react-root"));
+    ReactDOM.render(<div>{compsButton}</div>, document.getElementById("react-content"));
 </script>
 </html>
