@@ -661,7 +661,7 @@ var Zepto = (function () {
       return $(uniq(this.concat($(selector, context))))
     },
 
-    // 判断元素或当前集合中的第一个元素是否符合css选择器
+    // 判断Zepto集合中第一个元素是否符合css选择器
     is: function (selector) {
       return this.length > 0 && zepto.matches(this[0], selector)
     },
@@ -717,9 +717,10 @@ var Zepto = (function () {
       return el && !isObject(el) ? el : $(el)
     },
 
-    // 返回集合中的最后一个元素 保证返回的是zepto对象
+    // 返回集合中的最后一个元素 
     last: function () {
       var el = this[this.length - 1]
+      // 保证返回的是zepto对象
       return el && !isObject(el) ? el : $(el)
     },
 
@@ -966,14 +967,14 @@ var Zepto = (function () {
        * 先清空innerHTML 在 append html
        * html 参数为空时 获取集合中第一个元素中的 innerHTML
        */
-      return 0 in arguments // 0 in arguments 以此判断是否存在第一个元素
+      return 0 in arguments
         ? this.each(function (idx) {
             var originHtml = this.innerHTML
             $(this).empty().append(funcArg(this, html, idx, originHtml))
           })
         : 0 in this
-        ? this[0].innerHTML
-        : null
+          ? this[0].innerHTML
+          : null
     },
 
     // 获取或者设置集合中所有元素的文本内容
@@ -1069,6 +1070,7 @@ var Zepto = (function () {
     },
 
     // 获取或设置元素的值
+    // <select multiple>多选返回的是一个数组
     val: function (value) {
       return 0 in arguments
         ? // 有参数
@@ -1076,16 +1078,15 @@ var Zepto = (function () {
             // 赋值value
             this.value = funcArg(this, value, idx, this.value)
           })
-        : // 无参数 获取集合中第一个元素的value
+        : // 无参数 获取集合中第一个元素的value值 true && xxx => xxx
           this[0] &&
-            (this[0].multiple // 如果元素是 select 多选
-              ? $(this[0])
-                  .find('option')
+            (this[0].multiple // 如果元素是 select 多选，返回一个数组
+              ? $(this[0]).find('option')
                   .filter(function () {
-                    return this.selected // 获取 option 中 selected 属性为 true 的 value
+                    return this.selected
                   })
-                  .pluck('value')
-              : this[0].value)
+                  .pluck('value') // 获取option中selected属性为true的value
+              : this[0].value) // 其他元素直接取value
     },
 
     // 获取元素的位置、宽高属性
@@ -1182,10 +1183,12 @@ var Zepto = (function () {
 
     /**
      * 获取指定元素 element 在集合中的索引值
-     * 未指定element 则获取当前元素在父元素中的索引
+     * 未指定element 则获取集合中第一个元素在兄弟节点中的索引
      */
     index: function (element) {
-      return element ? this.indexOf($(element)[0]) : this.parent().children().indexOf(this[0])
+      return element 
+            ? this.indexOf($(element)[0])  // 获取指定元素 element 在集合中的索引值，不存在返回 -1
+            : this.parent().children().indexOf(this[0]) // 未指定 element，则获取集合中第一个元素在父元素中的索引
     },
 
     /**
@@ -1335,9 +1338,9 @@ var Zepto = (function () {
   // for now
   $.fn.detach = $.fn.remove
 
-  // 获取元素的宽度/高度
-  // Generate the `width` and `height` functions
+  // 设置或获取元素的宽度/高度
   ;['width', 'height'].forEach(function (dimension) {
+    // /./匹配第一个字符
     var dimensionProperty = dimension.replace(/./, function (m) {
       return m[0].toUpperCase()
     }) // width => Width, height => Height
@@ -1345,18 +1348,15 @@ var Zepto = (function () {
     $.fn[dimension] = function (value) {
       var offset,
         el = this[0]
-      // 无参数 获取属性值
+      // 无参数 获取属性值 针对集合中的第一个元素
       if (value === undefined) {
         return isWindow(el)
-          ? // window 获取 innerWidth/innerHeight 值
-            el['inner' + dimensionProperty]
+          ? el['inner' + dimensionProperty] // window 获取 window[innerWidth/innerHeight]
           : isDocument(el)
-          ? // document 获取 document.documentElement.[scrollWidth/scrollHeight]
-            el.documentElement['scroll' + dimensionProperty]
-          : // 普通节点 从 this.offset() 中获取
-            (offset = this.offset()) && offset[dimension]
+            ? el.documentElement['scroll' + dimensionProperty] // document 获取 document.documentElement[scrollWidth/scrollHeight]
+            : (offset = this.offset()) && offset[dimension] // 普通节点则从 this.offset() 中获取
       }
-      // 有参数 设置属性值
+      // 有参数 设置属性值 针对集合中的所有元素
       else {
         return this.each(function (idx) {
           el = $(this)
