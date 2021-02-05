@@ -11,7 +11,9 @@ var Zepto = (function () {
     filter = emptyArray.filter,
     document = window.document,
     elementDisplay = {},
-    classCache = {},
+    classCache = {
+      // test: (^|\s)test(\s|$), //  能匹配 'test' 或 ' test' 或 ' test '
+    },
     // 属性值为数字的css属性
     cssNumber = {
       'column-count': 1,
@@ -42,6 +44,7 @@ var Zepto = (function () {
       '*': document.createElement('div'),
     },
     readyRE = /complete|loaded|interactive/,
+    // 匹配包含字母数字_-的字符串
     simpleSelectorRE = /^[\w-]*$/,
     class2type = {},
     toString = class2type.toString,
@@ -172,6 +175,8 @@ var Zepto = (function () {
     })
   }
 
+  // 返回匹配当前class对应的正则表达式
+  // test => (^|\s)test(\s|$) => 能匹配 'test' 或 ' test' 或 ' test '
   function classRE(name) {
     return name in classCache ? classCache[name] : (classCache[name] = new RegExp('(^|\\s)' + name + '(\\s|$)'))
   }
@@ -359,26 +364,29 @@ var Zepto = (function () {
   // This method can be overriden in plugins.
   zepto.qsa = function (element, selector) {
     var found,
-      // 是否为id选择器
+      // selector为id选择器
       maybeID = selector[0] == '#',
-      // 是否为class选择器
+      // selector为class选择器
       maybeClass = !maybeID && selector[0] == '.',
       // id class选择器 截取出名称
       nameOnly = maybeID || maybeClass ? selector.slice(1) : selector, // Ensure that a 1 char tag name still gets checked
+      // 是否是一个简单的字符串
+      // 可能是一个复杂的选择器，如 'div#div1 .item[link] .red'
       isSimple = simpleSelectorRE.test(nameOnly)
-    return isDocument(element) && isSimple && maybeID
+    
+    return isDocument(element) && isSimple && maybeID 
       ? (found = element.getElementById(nameOnly))
         ? [found]
         : []
       : element.nodeType !== 1 && element.nodeType !== 9 // 非element元素节点 非document文档节点
-      ? []
-      : slice.call(
-          isSimple && !maybeID
-            ? maybeClass
-              ? element.getElementsByClassName(nameOnly) // If it's simple, it could be a class
-              : element.getElementsByTagName(selector) // Or a tag
-            : element.querySelectorAll(selector) // Or it's not simple, and we need to query all
-        )
+        ? []
+        : slice.call(
+            isSimple && !maybeID // 可能是class或者html标签
+              ? maybeClass
+                ? element.getElementsByClassName(nameOnly) // class
+                : element.getElementsByTagName(selector) // tag
+              : element.querySelectorAll(selector) // 复杂的选择器，使用querySelectorAll
+          )
   }
 
   function filtered(nodes, selector) {
@@ -687,7 +695,9 @@ var Zepto = (function () {
     // 返回集合的子元素中符合条件的元素
     has: function (selector) {
       return this.filter(function () {
-        return isObject(selector) ? $.contains(this, selector) : $(this).find(selector).size()
+        return isObject(selector) 
+                ? $.contains(this, selector) // 如果为Zepto对象，使用contains检查是否为this的子元素
+                : $(this).find(selector).size()
       })
     },
 
@@ -713,8 +723,9 @@ var Zepto = (function () {
       return el && !isObject(el) ? el : $(el)
     },
 
-    // 在当对象前集合内查找符合CSS选择器的所有后代元素
+    // 在当前对象集合内查找符合CSS选择器的每个元素的后代元素
     find: function (selector) {
+      // console.log(selector)
       var result,
         $this = this
       // 返回 zepto 空集合
@@ -726,14 +737,17 @@ var Zepto = (function () {
         result = $(selector).filter(function () {
           var node = this
           // some 其中一个满足条件则返回 true
+          // 条件中当前元素属于Zepto某个元素的子元素
           return emptyArray.some.call($this, function (parent) {
+            // 检查Zepto每一个元素是否包含给定的dom节点
             return $.contains(parent, node)
           })
         })
       } else if (this.length == 1) {
-        // $('form').find('input')
+        // Zepto集合只有一个元素
         result = $(zepto.qsa(this[0], selector))
       } else {
+        // Zepto集合有多个元素
         result = this.map(function () {
           return zepto.qsa(this, selector)
         })
@@ -746,7 +760,6 @@ var Zepto = (function () {
 
       if (typeof selector == 'object') collection = $(selector)
       while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector))) {
-        console.log(111)
         node = node !== context && !isDocument(node) && node.parentNode
       }
       return $(node)
@@ -1176,7 +1189,7 @@ var Zepto = (function () {
     },
 
     /**
-     * 集合中是否有对象含有指定的 class
+     * 集合中是否有元素含有指定的 class
      */
     hasClass: function (name) {
       if (!name) return false
@@ -1184,9 +1197,11 @@ var Zepto = (function () {
       return emptyArray.some.call(
         this,
         function (el) {
+          // this => classRE(name)
+          // className 设置或获取元素class名称
           return this.test(className(el))
         },
-        classRE(name) // 第二个参数对象作为该执行回调时使用，传递给函数，用作 "this" 的值, classRE 返回正则字符串
+        classRE(name) // 第二个参数对象作为该执行回调时使用，传递给函数，用作 "this" 的值, 如果省略 ，"this" 的值为 "undefined"
       )
     },
 
