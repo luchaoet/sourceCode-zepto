@@ -593,6 +593,7 @@ var Zepto = (function () {
     ready: function (callback) {
       // need to check if document.body exists for IE as that browser reports
       // document ready when it hasn't yet created the body element
+      // readyRE = /complete|loaded|interactive/
       if (readyRE.test(document.readyState) && document.body) {
         callback($)
       } else {
@@ -633,8 +634,7 @@ var Zepto = (function () {
     // 从dom节点中删除当前集合中的元素
     remove: function () {
       return this.each(function () {
-        // 父节点删除当前元素
-        // document.parentNode 为 null
+        // 从父节点删除当前元素
         if (this.parentNode != null) this.parentNode.removeChild(this)
       })
     },
@@ -682,8 +682,8 @@ var Zepto = (function () {
           typeof selector == 'string'
             ? this.filter(selector) // 先用filter处理
             : likeArray(selector) && isFunction(selector.item)
-            ? slice.call(selector) // 如果是类数组则转为数组
-            : $(selector)
+              ? slice.call(selector) // 如果是类数组则转为数组
+              : $(selector)
         // 数组元素取反
         this.forEach(function (el) {
           if (excludes.indexOf(el) < 0) nodes.push(el)
@@ -832,8 +832,7 @@ var Zepto = (function () {
       })
     },
 
-    // 获取集合中每个元素的属性值
-    // `pluck` is borrowed from Prototype.js
+    // 获取集合中每个元素的指定属性值
     pluck: function (property) {
       return $.map(this, function (el) {
         return el[property]
@@ -1017,7 +1016,8 @@ var Zepto = (function () {
     // 移除属性
     removeAttr: function (name) {
       return this.each(function () {
-        // 元素节点（element）：1，
+        // 元素节点
+        // name 支持空格间隔多个
         this.nodeType === 1 &&
           name.split(' ').forEach(function (attribute) {
             // 删除属性
@@ -1089,12 +1089,13 @@ var Zepto = (function () {
               : this[0].value) // 其他元素直接取value
     },
 
-    // 获取元素的位置、宽高属性
+    // 设置top, left 属性，或获取元素的 left, top, width, height 属性
     offset: function (coordinates) {
       if (coordinates) {
         return this.each(function (index) {
           var $this = $(this),
             coords = funcArg(this, coordinates, index, $this.offset()),
+            // 有定位的祖先节点
             parentOffset = $this.offsetParent().offset(),
             props = {
               top: coords.top - parentOffset.top,
@@ -1294,7 +1295,7 @@ var Zepto = (function () {
       )
     },
 
-    // 获取定位信息
+    // 获取 top，left 信息
     position: function () {
       if (!this.length) return
       // 获取集合中的第一个元素的信息
@@ -1326,10 +1327,17 @@ var Zepto = (function () {
     // 找到元素第一个有定位的祖先元素
     offsetParent: function () {
       return this.map(function () {
-        // dom元素自带offsetParent属性
+        // dom元素自带offsetParent属性 即具有定位属性的最近的祖先节点
         var parent = this.offsetParent || document.body
         // rootNodeRE -> html / body
-        while (parent && !rootNodeRE.test(parent.nodeName) && $(parent).css('position') == 'static') parent = parent.offsetParent
+        while (
+          parent && 
+          !rootNodeRE.test(parent.nodeName) && 
+          $(parent).css('position') == 'static'
+        ) {
+          // 忽略 position=static 继续向上寻找
+          parent = parent.offsetParent
+        }
         return parent
       })
     },

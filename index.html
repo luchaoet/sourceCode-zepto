@@ -17,7 +17,7 @@
     </style>
   </head>
   <body>
-    <ul>
+    <ul style="position: relative;">
       <li class="first-li a b f">list item 1</li>
       <li style="font-weight: bold">list item 3</li>
       <li class="li-active">list item 2</li>
@@ -69,8 +69,9 @@
     // const _p = p.data('name', 'name')
     // console.log(_p)
 
-    const _class = $('li.li-active').index()
-    console.log(_class)
+    const a = $('a').position()
+
+    console.log(a)
 
     // input button select option 有disabled属性 默认返回 False, disabled 或者 disabled="disabled" 都是返回 True
     // 其他元素没有disabled属性 返回 None
