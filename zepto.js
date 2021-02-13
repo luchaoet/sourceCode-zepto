@@ -1239,7 +1239,7 @@ var Zepto = (function () {
         if (!('className' in this)) return
         // 不指定class，则删除所有的class
         if (name === undefined) return className(this, '')
-        // 获取已有class
+        // 获取已有的className
         classList = className(this)
         // 从className中删除 name
         funcArg(this, name, idx, classList)
@@ -1247,7 +1247,7 @@ var Zepto = (function () {
           .forEach(function (klass) {
             classList = classList.replace(classRE(klass), ' ')
           })
-        // 删除后重新设置className
+        // 重新设置className
         className(this, classList.trim())
       })
     },
