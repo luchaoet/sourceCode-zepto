@@ -70,8 +70,11 @@
     // console.log(_p)
 
     const a = $('a').position()
-
     console.log(a)
+
+    new Promise((resolve, reject) => {
+      resolve(1)
+    }).then(res => console.log(res))
 
     // input button select option 有disabled属性 默认返回 False, disabled 或者 disabled="disabled" 都是返回 True
     // 其他元素没有disabled属性 返回 None

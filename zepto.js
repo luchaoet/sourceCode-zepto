@@ -842,10 +842,13 @@ var Zepto = (function () {
     // 使元素显示 去除 display=none
     show: function () {
       return this.each(function () {
-        // 处理内联样式 this.style.display 只能获取内联样式的值
+        // 处理内联样式 
+        // this.style.display 只能获取内联样式的值
         this.style.display == 'none' && (this.style.display = '')
         // 处理css样式
-        if (getComputedStyle(this, '').getPropertyValue('display') == 'none') this.style.display = defaultDisplay(this.nodeName)
+        if (getComputedStyle(this, '').getPropertyValue('display') == 'none') {
+          this.style.display = defaultDisplay(this.nodeName)
+        }
       })
     },
 
@@ -945,7 +948,9 @@ var Zepto = (function () {
          * 有参数 根据参数setting设置
          * 无参数 根据 display 当前属性值切换显示与隐藏
          */
-        ;(setting === undefined ? el.css('display') == 'none' : setting) ? el.show() : el.hide()
+        ;(setting === undefined ? el.css('display') == 'none' : setting) 
+          ? el.show() 
+          : el.hide()
       })
     },
 
@@ -979,15 +984,13 @@ var Zepto = (function () {
     // 获取或者设置集合中所有元素的文本内容
     text: function (text) {
       return 0 in arguments
-        ? // 有参数 设置
-          this.each(function (idx) {
+        ? this.each(function (idx) { // 有参数 设置
             var newText = funcArg(this, text, idx, this.textContent)
             this.textContent = newText == null ? '' : '' + newText
           })
-        : // 无参数 获取 第一个元素的文本内容
-        0 in this
-        ? this[0].textContent
-        : null
+        : 0 in this // 无参数 获取 第一个元素的文本内容
+          ? this[0].textContent
+          : null
     },
 
     // 获取或设置dom元素属性
@@ -1252,12 +1255,14 @@ var Zepto = (function () {
       })
     },
 
+    // 切换class
     toggleClass: function (name, when) {
       if (!name) return this
       return this.each(function (idx) {
         var $this = $(this),
           names = funcArg(this, name, idx, className(this))
         names.split(/\s+/g).forEach(function (klass) {
+          // 可以通过条件when 添加或删除类名name
           ;(when === undefined ? !$this.hasClass(klass) : when) ? $this.addClass(klass) : $this.removeClass(klass)
         })
       })
@@ -1265,8 +1270,12 @@ var Zepto = (function () {
 
     scrollTop: function (value) {
       if (!this.length) return
+      // window.pageYOffset
+      // ele.scrollTop
       var hasScrollTop = 'scrollTop' in this[0]
+      // 获取垂直方向滚动像素
       if (value === undefined) return hasScrollTop ? this[0].scrollTop : this[0].pageYOffset
+      // 设置scrollTop
       return this.each(
         hasScrollTop
           ? function () {
