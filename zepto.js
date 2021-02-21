@@ -877,9 +877,8 @@ var Zepto = (function () {
           func
             ? structure.call(this, index)
             : clone
-            ? // clone dom节点及所有子节点
-              dom.cloneNode(true)
-            : dom
+              ? dom.cloneNode(true)
+              : dom
         )
       })
     },
